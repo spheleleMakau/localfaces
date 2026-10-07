@@ -43,7 +43,6 @@ def build_application_whatsapp_url(application: Application, request):
         f"Email: {application.email}",
         f"WhatsApp: {application.whatsapp_number or 'Not provided'}",
         f"Currently: {application.current_occupation or 'Not provided'}",
-        f"Preferred Time: {application.get_preferred_time_display() or 'Not provided'}",
         "Available for Full 5 Weeks: "
         + (
             "Yes"

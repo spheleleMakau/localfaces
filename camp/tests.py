@@ -52,6 +52,8 @@ class CampPagesTests(TestCase):
         self.assertNotContains(response, "Select all areas you are interested in.")
         self.assertNotContains(response, 'name="preferred_days"')
         self.assertNotContains(response, 'name="areas_of_interest"')
+        self.assertNotContains(response, "Preferred time")
+        self.assertNotContains(response, 'name="preferred_time"')
         self.assertContains(response, "Submit application")
         self.assertContains(response, 'name="headshot"')
         self.assertContains(response, 'name="full_length_photo"')
@@ -122,7 +124,6 @@ class ApplicationSubmissionTests(TestCase):
             "date_of_birth": "2006-01-01",
             "location": "Cape Town",
             "current_occupation": "Student",
-            "preferred_time": "afternoon",
             "available_full_five_weeks": "yes",
             "previous_experience": "Community theatre",
             "social_handle": "@jordan",
@@ -201,7 +202,6 @@ class ApplicationSubmissionTests(TestCase):
             "Cape Town",
             "jordan@example.com",
             "Student",
-            "Afternoon",
             "Available for Full 5 Weeks: Yes",
             "Community theatre",
             "@jordan",
@@ -212,6 +212,7 @@ class ApplicationSubmissionTests(TestCase):
         self.assertNotIn("A long personal statement", message)
         self.assertNotIn("Preferred Days:", message)
         self.assertNotIn("Interested In:", message)
+        self.assertNotIn("Preferred Time:", message)
         self.assertNotIn("graph.facebook.com", response.context["whatsapp_url"])
         full_application = self.client.get(
             reverse(
@@ -346,7 +347,6 @@ class WhatsAppHandoffTests(TestCase):
             age=21,
             location="Durban",
             current_occupation="Student",
-            preferred_time="afternoon",
             available_full_five_weeks=True,
             previous_experience="No previous modelling experience",
             social_handle="@morgan",
@@ -367,6 +367,7 @@ class WhatsAppHandoffTests(TestCase):
         self.assertIn("morgan@example.com", message)
         self.assertNotIn("Preferred Days:", message)
         self.assertNotIn("Interested In:", message)
+        self.assertNotIn("Preferred Time:", message)
         self.assertIn("PHOTOS:", message)
         self.assertIn("FULL APPLICATION:", message)
         self.assertNotIn("graph.facebook.com", url)

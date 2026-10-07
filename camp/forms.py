@@ -51,11 +51,6 @@ class ApplicationForm(forms.ModelForm):
         required=True,
         widget=forms.TextInput(attrs={"autocomplete": "organization-title"}),
     )
-    preferred_time = forms.ChoiceField(
-        label="Preferred time",
-        choices=(("", "Please select"), *Application.PreferredTime.choices),
-        required=True,
-    )
     available_full_five_weeks = forms.ChoiceField(
         label="Available for the full 5 weeks?",
         choices=(("", "Please select"), ("yes", "Yes"), ("no", "No")),
@@ -89,7 +84,6 @@ class ApplicationForm(forms.ModelForm):
             "date_of_birth",
             "location",
             "current_occupation",
-            "preferred_time",
             "available_full_five_weeks",
             "previous_experience",
             "social_handle",

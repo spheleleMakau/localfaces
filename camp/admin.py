@@ -74,7 +74,6 @@ class ApplicationAdmin(admin.ModelAdmin):
                     "location",
                     "current_occupation",
                     "preferred_days",
-                    "preferred_time",
                     "available_full_five_weeks",
                     "previous_experience",
                     "areas_of_interest",
