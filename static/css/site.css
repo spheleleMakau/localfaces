@@ -545,7 +545,7 @@ body {
 }
 
 .form-campaign-art:hover img {
-  transform: scale(2.2);
+  transform: scale(3.2);
 }
 
 .form-campaign-art > span {
@@ -985,34 +985,27 @@ body {
 }
 
 .form-campaign-art img {
-  object-position: right 46%;
-  transform: scale(1.45);
-  transform-origin: right 46%;
+  object-position: center 43%;
+  transform: scale(3.2);
+  transform-origin: 65% 43%;
 }
 
 .form-campaign-art > span {
-  top: 20px;
-  right: 0;
-  bottom: auto;
-  left: auto;
-  width: 150px;
-  padding: 15px 17px;
-  background: #171717;
-  color: #fffefa;
-  font: 600 13px/1.35 Georgia, "Times New Roman", serif;
-  letter-spacing: .04em;
+  display: none;
 }
 
 .form-campaign-secondary {
   width: min(100%, 300px);
+  height: 330px;
   margin: 22px auto 0;
 }
 
 .form-campaign-secondary img {
   width: 100%;
-  height: auto;
+  height: 100%;
   max-height: none;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: 64% 46%;
 }
 
 .aside-note {
