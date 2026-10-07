@@ -28,10 +28,6 @@ class Application(models.Model):
         INDUSTRY_KNOWLEDGE = "industry_knowledge", "Industry knowledge"
 
     DAY_CHOICES = (
-        ("Monday", "Monday"),
-        ("Tuesday", "Tuesday"),
-        ("Wednesday", "Wednesday"),
-        ("Thursday", "Thursday"),
         ("Friday", "Friday"),
         ("Saturday", "Saturday"),
         ("Sunday", "Sunday"),
@@ -60,14 +56,20 @@ class Application(models.Model):
     age = models.PositiveSmallIntegerField(null=True, blank=True)
     location = models.CharField(max_length=120)
     current_occupation = models.CharField(max_length=120, blank=True)
-    preferred_days = models.JSONField(default=list, blank=True)
+    preferred_days = models.JSONField("Available day", default=list, blank=True)
     preferred_time = models.CharField(
         max_length=16, choices=PreferredTime.choices, blank=True
     )
-    available_full_five_weeks = models.BooleanField(null=True, blank=True)
+    available_full_five_weeks = models.BooleanField(
+        "Available for the full 6 weeks?", null=True, blank=True
+    )
+    has_modelling_experience = models.BooleanField(
+        "Has modelling experience?", null=True, blank=True
+    )
     previous_experience = models.TextField(blank=True)
     areas_of_interest = models.JSONField(default=list, blank=True)
     social_handle = models.CharField(max_length=80, blank=True)
+    tiktok_handle = models.CharField(max_length=80, blank=True)
     about = models.TextField(blank=True)
     guardian_name = models.CharField(max_length=160, blank=True)
     guardian_phone = models.CharField(max_length=32, blank=True)
@@ -112,10 +114,14 @@ class Application(models.Model):
         labels = dict(self.InterestArea.choices)
         return [labels.get(area, area) for area in self.areas_of_interest]
 
+    def get_available_day_labels(self):
+        labels = dict(self.DAY_CHOICES)
+        return [labels.get(day, day) for day in self.preferred_days]
+
 
 class ApplicationPhoto(models.Model):
     class PhotoType(models.TextChoices):
-        HEADSHOT = "headshot", "Headshot"
+        HEADSHOT = "headshot", "Profile / selfie"
         FULL_LENGTH = "full_length", "Full-length"
         SHOULDER_UP = "shoulder_up", "Shoulder-up"
         ADDITIONAL = "additional", "Additional"

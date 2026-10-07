@@ -35,5 +35,3 @@ services:
         value: 27671012841
       - key: MAX_APPLICATION_PHOTO_BYTES
         value: "8388608"
-      - key: MAX_APPLICATION_PHOTOS
-        value: "3"

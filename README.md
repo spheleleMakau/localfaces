@@ -1,6 +1,6 @@
-# Local Faces Agency — 5-Week Summer Camp
+# Local Faces Agency — 6-Week Summer Camp
 
-A Django website and application system for the Local Faces Agency 5-Week Summer Camp. The public application form at `/` (also available at `/apply/`) saves applicant details and private photographs, then presents a confirmation page with an applicant-triggered WhatsApp handoff. A staff dashboard and Django Admin support application review.
+A Django website and application system for the Local Faces Agency 6-Week Summer Camp. The public application form at `/` (also available at `/apply/`) saves applicant details and private photographs, then presents a confirmation page with an applicant-triggered WhatsApp handoff. A staff dashboard and Django Admin support application review.
 
 ## Run locally
 
@@ -32,9 +32,9 @@ Each application has a random UUID-based private link token. Anyone with the app
 
 ## Applicant photographs and privacy
 
-Uploaded images are validated as images and stored outside public static files in `private_uploads/`. The form requires a headshot and full-body photo and accepts one optional additional photo. Only JPG/JPEG and PNG are accepted. `MAX_APPLICATION_PHOTO_BYTES` sets the per-photo byte limit (default 8 MiB); `MAX_APPLICATION_PHOTOS` sets the total limit from 2 through 3. Public media serving is deliberately not enabled. The UUID-token photo and application pages are the only non-staff access path. Back up and restrict access to the database and private upload directory together.
+Uploaded images are validated as images and stored outside public static files in `private_uploads/`. The form requires exactly two photographs: Picture 1 is full length and Picture 2 is a profile photo/selfie. Only JPG/JPEG and PNG are accepted. `MAX_APPLICATION_PHOTO_BYTES` sets the per-photo byte limit (default 8 MiB). Public media serving is deliberately not enabled. The UUID-token photo and application pages are the only non-staff access path. Back up and restrict access to the database and private upload directory together.
 
-Applicants enter their date of birth; age is calculated by the browser for display and independently calculated by Django when saving. The form also collects contact/WhatsApp numbers, current occupation, five-week availability, experience, Instagram, and an optional personal statement. For applicants under 18, parent/guardian contact details and agreement are required. Confirm the programme's actual eligibility and consent requirements before accepting applications.
+Applicants enter their date of birth; age is calculated by the browser for display and independently calculated by Django when saving. The form also collects contact/WhatsApp numbers, city followed by town, current occupation, one available day (Friday, Saturday or Sunday), six-week availability, a required Yes/No modelling-experience answer with optional details when applicable, Instagram and TikTok handles, and an optional personal statement. For applicants under 18, parent/guardian contact details and agreement are required. Confirm the programme's actual eligibility and consent requirements before accepting applications.
 
 The submission includes a unique idempotency key, so a repeated POST with the same form does not create another application. The submit button is disabled while the first submission is processing.
 

@@ -50,6 +50,8 @@ class ApplicationAdmin(admin.ModelAdmin):
         "phone",
         "location",
         "whatsapp_number",
+        "social_handle",
+        "tiktok_handle",
     ]
     readonly_fields = [
         "application_number",
@@ -75,9 +77,10 @@ class ApplicationAdmin(admin.ModelAdmin):
                     "current_occupation",
                     "preferred_days",
                     "available_full_five_weeks",
+                    "has_modelling_experience",
                     "previous_experience",
-                    "areas_of_interest",
                     "social_handle",
+                    "tiktok_handle",
                     "about",
                     "guardian_name",
                     "guardian_phone",

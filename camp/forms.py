@@ -51,27 +51,46 @@ class ApplicationForm(forms.ModelForm):
         required=True,
         widget=forms.TextInput(attrs={"autocomplete": "organization-title"}),
     )
+    preferred_days = forms.ChoiceField(
+        label="Which day are you available?",
+        choices=Application.DAY_CHOICES,
+        required=True,
+        help_text="Choose one day: Friday, Saturday or Sunday.",
+        widget=forms.RadioSelect,
+    )
     available_full_five_weeks = forms.ChoiceField(
-        label="Available for the full 5 weeks?",
+        label="Available for the full 6 weeks?",
         choices=(("", "Please select"), ("yes", "Yes"), ("no", "No")),
         required=True,
     )
+    has_modelling_experience = forms.ChoiceField(
+        label="Do you have any modelling experience?",
+        choices=(("", "Please select"), ("yes", "Yes"), ("no", "No")),
+        required=True,
+        widget=forms.Select(
+            attrs={"aria-controls": "previous-experience-details"}
+        ),
+    )
+    tiktok_handle = forms.CharField(
+        label="TikTok handle",
+        max_length=80,
+        required=False,
+    )
     previous_experience = forms.CharField(
-        label="Previous modelling or performance experience",
+        label="Tell us briefly about your modelling experience",
         required=False,
-        widget=forms.Textarea(attrs={"rows": 3}),
-    )
-    additional_photo_1 = ApplicationPhotoField(
-        label="Additional photo 1",
-        required=False,
-    )
-    headshot = ApplicationPhotoField(
-        label="Headshot / profile photo",
-        help_text="A clear, recent close-up focused on your face. JPG, JPEG or PNG.",
+        help_text="Optional — shown when you answer Yes.",
+        widget=forms.Textarea(
+            attrs={"rows": 3, "id": "previous-experience-details"}
+        ),
     )
     full_length_photo = ApplicationPhotoField(
-        label="Full body photo",
+        label="Picture 1 — Full length",
         help_text="A recent full-length photograph showing your complete outfit. JPG, JPEG or PNG.",
+    )
+    headshot = ApplicationPhotoField(
+        label="Picture 2 — Profile / selfie",
+        help_text="A clear, recent profile photo or selfie. JPG, JPEG or PNG.",
     )
 
     class Meta:
@@ -84,20 +103,30 @@ class ApplicationForm(forms.ModelForm):
             "date_of_birth",
             "location",
             "current_occupation",
+            "preferred_days",
             "available_full_five_weeks",
+            "has_modelling_experience",
             "previous_experience",
             "social_handle",
+            "tiktok_handle",
+            "full_length_photo",
+            "headshot",
             "about",
             "guardian_name",
             "guardian_phone",
         ]
         labels = {
-            "social_handle": "Instagram",
+            "social_handle": "Instagram handle",
+            "location": "City, then town",
             "about": "Anything else you'd like us to know?",
+        }
+        help_texts = {
+            "location": "Enter your city, followed by your town.",
         }
         widgets = {
             "about": forms.Textarea(attrs={"rows": 4}),
             "phone": forms.TextInput(attrs={"autocomplete": "tel"}),
+            "preferred_days": forms.CheckboxSelectMultiple,
             "guardian_phone": forms.TextInput(
                 attrs={"autocomplete": "tel"}
             ),
@@ -159,20 +188,18 @@ class ApplicationForm(forms.ModelForm):
                     "guardian_consent",
                     "Parent or guardian agreement is required for applicants under 18.",
                 )
-        uploaded_photos = [
-            cleaned_data.get("headshot"),
-            cleaned_data.get("full_length_photo"),
-            cleaned_data.get("additional_photo_1"),
-        ]
-        photo_count = sum(photo is not None for photo in uploaded_photos)
-        if photo_count > settings.MAX_APPLICATION_PHOTOS:
-            raise ValidationError(
-                f"You may upload no more than {settings.MAX_APPLICATION_PHOTOS} photographs."
-            )
+        if cleaned_data.get("has_modelling_experience") is False:
+            cleaned_data["previous_experience"] = ""
         return cleaned_data
 
     def clean_available_full_five_weeks(self):
         return self.cleaned_data["available_full_five_weeks"] == "yes"
+
+    def clean_preferred_days(self):
+        return [self.cleaned_data["preferred_days"]]
+
+    def clean_has_modelling_experience(self):
+        return self.cleaned_data["has_modelling_experience"] == "yes"
 
     def save(self, commit=True):
         application = super().save(commit=False)
@@ -191,9 +218,8 @@ class ApplicationForm(forms.ModelForm):
 
     def save_photos(self, application):
         photos = [
-            ("headshot", ApplicationPhoto.PhotoType.HEADSHOT),
             ("full_length_photo", ApplicationPhoto.PhotoType.FULL_LENGTH),
-            ("additional_photo_1", ApplicationPhoto.PhotoType.ADDITIONAL),
+            ("headshot", ApplicationPhoto.PhotoType.HEADSHOT),
         ]
         for field_name, photo_type in photos:
             uploaded_file = self.cleaned_data[field_name]

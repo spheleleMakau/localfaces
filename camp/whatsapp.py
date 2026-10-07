@@ -38,12 +38,14 @@ def build_application_whatsapp_url(application: Application, request):
         f"Applicant: {application.full_name}",
         f"Date of Birth: {date_of_birth}",
         f"Age: {application.age if application.age is not None else 'Not provided'}",
-        f"Location: {application.location}",
+        f"City, then town: {application.location}",
         f"Phone: {application.phone}",
         f"Email: {application.email}",
         f"WhatsApp: {application.whatsapp_number or 'Not provided'}",
         f"Currently: {application.current_occupation or 'Not provided'}",
-        "Available for Full 5 Weeks: "
+        "Available day: "
+        + (", ".join(application.get_available_day_labels()) or "Not provided"),
+        "Available for Full 6 Weeks: "
         + (
             "Yes"
             if application.available_full_five_weeks is True
@@ -51,9 +53,18 @@ def build_application_whatsapp_url(application: Application, request):
             if application.available_full_five_weeks is False
             else "Not provided"
         ),
+        "Modelling experience: "
+        + (
+            "Yes"
+            if application.has_modelling_experience is True
+            else "No"
+            if application.has_modelling_experience is False
+            else "Not provided"
+        ),
         "Experience: "
         + (application.previous_experience.strip() or "No previous experience provided"),
         f"Instagram: {application.social_handle or 'Not provided'}",
+        f"TikTok: {application.tiktok_handle or 'Not provided'}",
         "",
         f"PHOTOS: {photos_url}",
         f"FULL APPLICATION: {application_url}",

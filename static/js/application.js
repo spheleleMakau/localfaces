@@ -3,10 +3,15 @@ const form = document.querySelector("[data-application-form]");
 if (form) {
   const photoInputs = [...form.querySelectorAll('input[type="file"]')];
   const maximumBytes = Number(form.dataset.maxPhotoBytes);
-  const maximumPhotos = Number(form.dataset.maxPhotos);
   const maximumPhotoMegabytes = form.dataset.maxPhotoMb;
   const dobInput = form.querySelector('input[name="date_of_birth"]');
   const ageOutput = document.querySelector("#calculated-age");
+  const modellingExperienceInput = form.querySelector(
+    'select[name="has_modelling_experience"]',
+  );
+  const modellingExperienceDetails = form.querySelector(
+    "[data-modelling-experience-details]",
+  );
 
   const updateAge = () => {
     if (!dobInput?.value || !ageOutput) return;
@@ -26,10 +31,20 @@ if (form) {
   dobInput?.addEventListener("input", updateAge);
   updateAge();
 
-  const selectedPhotoCount = () =>
-    photoInputs.filter((input) => input.files?.length).length;
+  const updateModellingExperienceDetails = () => {
+    if (modellingExperienceDetails && modellingExperienceInput) {
+      modellingExperienceDetails.hidden =
+        modellingExperienceInput.value !== "yes";
+    }
+  };
 
-  const validatePhotoInputs = (countErrorInput = null) => {
+  modellingExperienceInput?.addEventListener(
+    "change",
+    updateModellingExperienceDetails,
+  );
+  updateModellingExperienceDetails();
+
+  const validatePhotoInputs = () => {
     photoInputs.forEach((input) => {
       const file = input.files?.[0];
       let error = "";
@@ -40,11 +55,6 @@ if (form) {
       }
       input.setCustomValidity(error);
     });
-    if (selectedPhotoCount() > maximumPhotos && countErrorInput) {
-      countErrorInput.setCustomValidity(
-        `You may upload no more than ${maximumPhotos} photographs.`,
-      );
-    }
   };
 
   photoInputs.forEach((photoInput) => {
@@ -85,16 +95,6 @@ if (form) {
   });
 
   form.addEventListener("submit", (event) => {
-    const overLimitInput = photoInputs.find((input) => input.files?.length);
-    if (selectedPhotoCount() > maximumPhotos && overLimitInput) {
-      overLimitInput.setCustomValidity(
-        `You may upload no more than ${maximumPhotos} photographs.`,
-      );
-      overLimitInput.reportValidity();
-      event.preventDefault();
-      return;
-    }
-
     const submitButton = form.querySelector(".submit-application");
     if (submitButton) {
       submitButton.disabled = true;

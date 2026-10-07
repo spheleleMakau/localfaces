@@ -66,8 +66,6 @@ def apply(request):
         "camp/apply.html",
         {
             "form": form,
-            "max_application_photos": settings.MAX_APPLICATION_PHOTOS,
-            "optional_photo_limit": settings.MAX_APPLICATION_PHOTOS - 2,
             "photo_max_mb": f"{settings.MAX_APPLICATION_PHOTO_BYTES / (1024 * 1024):g}",
             "max_application_photo_bytes": settings.MAX_APPLICATION_PHOTO_BYTES,
         },

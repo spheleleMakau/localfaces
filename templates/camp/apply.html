@@ -4,21 +4,21 @@
 {% block content %}
 <section class="form-page" style="--campaign-image: url('{% static '2.jpg' %}')">
   <div class="form-heading">
-    <div class="section-label"><span>LOCAL FACES AGENCY</span> 5-WEEK SUMMER CAMP</div>
+    <div class="section-label"><span>LOCAL FACES AGENCY</span> 6-WEEK SUMMER CAMP</div>
     <h1>Kindly complete<br>the <em>fields below.</em></h1>
     <p>Share a few details and photographs in one go. Fields marked with <span class="required-mark">*</span> are required.</p>
   </div>
   <div class="form-layout">
     <aside class="form-aside" aria-label="Summer camp campaign">
       <div class="form-campaign-art">
-        <img src="{% static '2.jpg' %}" alt="Local Faces Agency five-week summer modelling academy campaign">
+        <img src="{% static '2.jpg' %}" alt="Campaign portrait featuring a model for Local Faces Agency">
         <span>LET'S GET<br>STARTED!</span>
       </div>
       <div class="form-campaign-secondary">
         <img src="{% static '1.jpg' %}" alt="Local Faces Agency summer modelling campaign with programme overview">
       </div>
     </aside>
-    <form class="application-form" id="application-form" method="post" enctype="multipart/form-data" data-application-form data-max-photos="{{ max_application_photos }}" data-max-photo-bytes="{{ max_application_photo_bytes }}" data-max-photo-mb="{{ photo_max_mb }}">
+    <form class="application-form" id="application-form" method="post" enctype="multipart/form-data" data-application-form data-max-photo-bytes="{{ max_application_photo_bytes }}" data-max-photo-mb="{{ photo_max_mb }}">
       {% csrf_token %}
       {{ form.submission_key }}
       {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
@@ -29,8 +29,8 @@
       </div>
       <div class="form-fields-grid">
         {% for field in form %}
-          {% if field.name == "full_name" or field.name == "email" or field.name == "phone" or field.name == "whatsapp_number" or field.name == "date_of_birth" or field.name == "location" or field.name == "current_occupation" or field.name == "available_full_five_weeks" or field.name == "social_handle" or field.name == "previous_experience" or field.name == "about" or field.name == "guardian_name" or field.name == "guardian_phone" %}
-            <div class="form-field {% if field.name == 'about' or field.name == 'previous_experience' %}form-field-wide{% endif %} {% if field.errors %}has-error{% endif %}">
+          {% if field.name == "full_name" or field.name == "email" or field.name == "phone" or field.name == "whatsapp_number" or field.name == "date_of_birth" or field.name == "location" or field.name == "current_occupation" or field.name == "preferred_days" or field.name == "available_full_five_weeks" or field.name == "has_modelling_experience" or field.name == "social_handle" or field.name == "tiktok_handle" or field.name == "previous_experience" or field.name == "about" or field.name == "guardian_name" or field.name == "guardian_phone" %}
+            <div class="form-field {% if field.name == 'about' or field.name == 'previous_experience' or field.name == 'preferred_days' %}form-field-wide{% endif %} {% if field.name == 'preferred_days' %}availability-field choice-grid{% endif %} {% if field.name == 'previous_experience' %}modelling-experience-details{% endif %} {% if field.errors %}has-error{% endif %}" {% if field.name == "previous_experience" %}data-modelling-experience-details{% endif %}>
               <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>
               {{ field }}
               {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
@@ -47,12 +47,12 @@
       </div>
       <fieldset class="photo-uploads">
         <legend>Applicant photographs <span class="required-mark">*</span></legend>
-        <p class="photo-uploads-intro">A headshot and full body photo are required.{% if optional_photo_limit %} You may add one optional photo.{% endif %} JPG, JPEG or PNG · Up to {{ photo_max_mb }} MB each.</p>
+        <p class="photo-uploads-intro">Upload two photos: one full-length and one profile photo or selfie. JPG, JPEG or PNG · Up to {{ photo_max_mb }} MB each.</p>
         <div class="photo-uploads-grid">
           {% for field in form %}
-            {% if field.name == "headshot" or field.name == "full_length_photo" or field.name == "additional_photo_1" %}
-              <div class="form-field photo-upload-field {% if field.errors %}has-error{% endif %}" {% if field.name == "additional_photo_1" and optional_photo_limit < 1 %}hidden{% endif %}>
-                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% else %} <span class="optional-mark">OPTIONAL</span>{% endif %}</label>
+            {% if field.name == "headshot" or field.name == "full_length_photo" %}
+              <div class="form-field photo-upload-field {% if field.errors %}has-error{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>
                 <div class="upload-box"><span class="upload-icon" aria-hidden="true">↥</span>{{ field }}<span class="upload-prompt">Choose this photograph</span><small>JPG, JPEG or PNG · Max {{ photo_max_mb }} MB</small></div>
                 {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
                 <div class="photo-preview" data-photo-preview aria-live="polite"></div>

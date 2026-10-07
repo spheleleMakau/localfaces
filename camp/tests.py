@@ -41,7 +41,7 @@ class CampPagesTests(TestCase):
         self.assertEqual(self.client.get("/faq/").status_code, 404)
         self.assertEqual(self.client.get("/home/").status_code, 404)
 
-    def test_application_form_shows_birth_date_and_three_photo_slots_without_removed_choices(self):
+    def test_application_form_shows_six_week_details_and_two_required_photo_slots(self):
         response = self.client.get(reverse("camp:apply"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'name="date_of_birth"')
@@ -50,18 +50,29 @@ class CampPagesTests(TestCase):
         self.assertNotContains(response, "Monday")
         self.assertNotContains(response, "Areas of interest")
         self.assertNotContains(response, "Select all areas you are interested in.")
-        self.assertNotContains(response, 'name="preferred_days"')
+        self.assertContains(response, "Which day are you available?")
+        self.assertContains(response, 'name="preferred_days"')
+        self.assertContains(response, 'value="Friday"')
+        self.assertContains(response, 'value="Saturday"')
+        self.assertContains(response, 'value="Sunday"')
+        self.assertContains(response, 'type="radio"')
         self.assertNotContains(response, 'name="areas_of_interest"')
         self.assertNotContains(response, "Preferred time")
         self.assertNotContains(response, 'name="preferred_time"')
+        self.assertContains(response, "6-WEEK SUMMER CAMP")
+        self.assertContains(response, "Available for the full 6 weeks?")
+        self.assertContains(response, "Do you have any modelling experience?")
+        self.assertContains(response, "Instagram handle")
+        self.assertContains(response, "TikTok handle")
+        self.assertContains(response, "City, then town")
         self.assertContains(response, "Submit application")
         self.assertContains(response, 'name="headshot"')
         self.assertContains(response, 'name="full_length_photo"')
-        self.assertContains(response, 'name="additional_photo_1"')
-        self.assertContains(response, "Additional photo 1")
-        self.assertNotContains(response, "Additional photo 2")
-        self.assertNotContains(response, 'name="additional_photo_2"')
-        self.assertContains(response, "OPTIONAL")
+        self.assertNotContains(response, 'name="additional_photo_1"')
+        self.assertNotContains(response, "OPTIONAL")
+        self.assertContains(response, "Picture 1 — Full length")
+        self.assertContains(response, "Picture 2 — Profile / selfie")
+        self.assertContains(response, "Enter your city, followed by your town.")
         self.assertNotContains(response, "application/shoulder_up_photo")
 
     def test_dashboard_requires_staff_login(self):
@@ -124,9 +135,12 @@ class ApplicationSubmissionTests(TestCase):
             "date_of_birth": "2006-01-01",
             "location": "Cape Town",
             "current_occupation": "Student",
+            "preferred_days": "Friday",
             "available_full_five_weeks": "yes",
+            "has_modelling_experience": "yes",
             "previous_experience": "Community theatre",
             "social_handle": "@jordan",
+            "tiktok_handle": "@jordanstudio",
             "about": "I enjoy creative projects.",
             "privacy_consent": "on",
             "photo_consent": "on",
@@ -160,9 +174,11 @@ class ApplicationSubmissionTests(TestCase):
         self.assertTrue(application.application_number.startswith("LFA-2026-"))
         self.assertEqual(application.date_of_birth, date(2006, 1, 1))
         self.assertEqual(application.age, 20)
-        self.assertEqual(application.preferred_days, [])
+        self.assertEqual(application.preferred_days, ["Friday"])
         self.assertEqual(application.areas_of_interest, [])
         self.assertTrue(application.available_full_five_weeks)
+        self.assertTrue(application.has_modelling_experience)
+        self.assertEqual(application.tiktok_handle, "@jordanstudio")
         self.assertEqual(application.photos.count(), 2)
         self.assertSetEqual(
             set(application.photos.values_list("photo_type", flat=True)),
@@ -200,11 +216,15 @@ class ApplicationSubmissionTests(TestCase):
             "01 January 2006",
             "20",
             "Cape Town",
+            "City, then town: Cape Town",
             "jordan@example.com",
             "Student",
-            "Available for Full 5 Weeks: Yes",
+            "Available day: Friday",
+            "Available for Full 6 Weeks: Yes",
+            "Modelling experience: Yes",
             "Community theatre",
-            "@jordan",
+            "Instagram: @jordan",
+            "TikTok: @jordanstudio",
             "PHOTOS: http://testserver/application/",
             "FULL APPLICATION: http://testserver/application/",
         ):
@@ -223,31 +243,20 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(full_application.status_code, 200)
         self.assertContains(full_application, "Jordan Example")
         self.assertContains(full_application, "Community theatre")
+        self.assertContains(full_application, "Friday")
+        self.assertContains(full_application, "Modelling experience")
 
-    def test_optional_photos_are_saved_and_visible_on_private_photo_page(self):
-        self.client.post(
-            reverse("camp:apply"),
-            self.submission_data(
-                additional_photo_1=SimpleUploadedFile(
-                    "extra.png", make_png(), content_type="image/png"
-                )
-            ),
-        )
+    def test_two_required_photos_are_saved_and_visible_on_private_photo_page(self):
+        self.client.post(reverse("camp:apply"), self.submission_data())
         application = Application.objects.get()
-        self.assertEqual(application.photos.count(), 3)
-        self.assertEqual(
-            application.photos.filter(
-                photo_type=ApplicationPhoto.PhotoType.ADDITIONAL
-            ).count(),
-            1,
-        )
+        self.assertEqual(application.photos.count(), 2)
         photos_response = self.client.get(
             reverse("camp:shared_photos", args=[application.share_token])
         )
         self.assertEqual(photos_response.status_code, 200)
-        self.assertContains(photos_response, "Headshot")
+        self.assertContains(photos_response, "Profile / selfie")
         self.assertContains(photos_response, "Full-length")
-        self.assertContains(photos_response, "Additional")
+        self.assertNotContains(photos_response, "Additional")
 
     def test_idempotency_key_prevents_duplicate_applications(self):
         data = self.submission_data()
@@ -278,6 +287,31 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
+    def test_availability_and_modelling_experience_are_required(self):
+        no_available_days = self.submission_data()
+        no_available_days.pop("preferred_days")
+        response = self.client.post(reverse("camp:apply"), no_available_days)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Application.objects.exists())
+
+        no_experience_answer = self.submission_data()
+        no_experience_answer.pop("has_modelling_experience")
+        response = self.client.post(reverse("camp:apply"), no_experience_answer)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Application.objects.exists())
+
+    def test_no_modelling_experience_discards_optional_experience_details(self):
+        self.client.post(
+            reverse("camp:apply"),
+            self.submission_data(
+                has_modelling_experience="no",
+                previous_experience="Should not be stored",
+            ),
+        )
+        application = Application.objects.get()
+        self.assertFalse(application.has_modelling_experience)
+        self.assertEqual(application.previous_experience, "")
+
     def test_future_date_of_birth_is_rejected(self):
         response = self.client.post(
             reverse("camp:apply"),
@@ -295,20 +329,6 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
         self.assertContains(response, "parent or guardian")
-
-    def test_optional_photo_count_limit_is_enforced(self):
-        with override_settings(MAX_APPLICATION_PHOTOS=2):
-            response = self.client.post(
-                reverse("camp:apply"),
-                self.submission_data(
-                    additional_photo_1=SimpleUploadedFile(
-                        "extra.png", make_png(), content_type="image/png"
-                    )
-                ),
-            )
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(Application.objects.exists())
-        self.assertContains(response, "no more than 2 photographs")
 
     @patch("camp.views.ApplicationForm.save", side_effect=OSError("Disk unavailable"))
     def test_storage_failure_shows_error_and_does_not_redirect_to_whatsapp(self, _save):
@@ -347,7 +367,9 @@ class WhatsAppHandoffTests(TestCase):
             age=21,
             location="Durban",
             current_occupation="Student",
+            preferred_days=["Friday"],
             available_full_five_weeks=True,
+            has_modelling_experience=True,
             previous_experience="No previous modelling experience",
             social_handle="@morgan",
         )
@@ -365,6 +387,11 @@ class WhatsAppHandoffTests(TestCase):
         self.assertIn("/photos/", message)
         self.assertIn("Morgan Applicant", message)
         self.assertIn("morgan@example.com", message)
+        self.assertIn("Available day: Friday", message)
+        self.assertIn("Available for Full 6 Weeks: Yes", message)
+        self.assertIn("Modelling experience: Yes", message)
+        self.assertIn("Instagram: @morgan", message)
+        self.assertIn("TikTok: Not provided", message)
         self.assertNotIn("Preferred Days:", message)
         self.assertNotIn("Interested In:", message)
         self.assertNotIn("Preferred Time:", message)
