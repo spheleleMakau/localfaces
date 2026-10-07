@@ -269,8 +269,56 @@ h1 em, h2 em { color: var(--accent); font-family: Georgia, "Times New Roman", se
   margin: 2px 0 0;
   accent-color: #98713d;
 }
-.availability-field ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.availability-field li { align-items: center; }
+.availability-field ul {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+.availability-field > div[id^="id_preferred_days"] {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+.availability-field > div[id^="id_preferred_days"] > div {
+  display: block;
+  min-width: 0;
+}
+.availability-field > div[id^="id_preferred_days"] label {
+  display: flex;
+  min-height: 45px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid #e3dbce;
+  background: #fffefa;
+  color: #51483a;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color .2s, background-color .2s, box-shadow .2s;
+}
+.availability-field > div[id^="id_preferred_days"] label:hover,
+.availability-field > div[id^="id_preferred_days"] label:focus-within {
+  border-color: #aa8954;
+  background: #fffdf8;
+}
+.availability-field > div[id^="id_preferred_days"] > div:has(input:checked) label {
+  border-color: #98713d;
+  background: #f5f0e6;
+  box-shadow: inset 0 0 0 1px rgba(152, 113, 61, .12);
+}
+.form-fields-grid .availability-field input[type="radio"][name="preferred_days"] {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  min-height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: #98713d;
+  font-size: 14px;
+  box-shadow: none;
+}
 .consent-fields { display: grid; gap: 14px; margin: 23px 0; }
 .checkbox-field { display: grid; grid-template-columns: 17px 1fr; gap: 10px; align-items: start; }
 .checkbox-field input { width: 16px; height: 16px; margin: 3px 0 0; accent-color: var(--accent); }
@@ -1118,6 +1166,8 @@ body {
     display: block;
     width: calc(100% + 10vw - 2px);
     max-width: none;
+    height: auto;
+    min-height: 0;
     margin: 0 -5vw 18px;
     background-image: none;
   }
