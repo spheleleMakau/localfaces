@@ -231,6 +231,17 @@ h1 em, h2 em { color: var(--accent); font-family: Georgia, "Times New Roman", se
   color: #756d62;
   font-size: 12px;
 }
+.kids-application-notice {
+  grid-column: 1 / -1;
+  margin: 0 0 19px;
+  padding: 13px 14px;
+  border: 1px solid #e3dbce;
+  border-left: 3px solid #98713d;
+  background: #f5f0e6;
+  color: #51483a;
+  font-size: 12px;
+  line-height: 1.6;
+}
 .choice-fieldset {
   min-width: 0;
   margin: 0 0 22px;

@@ -38,6 +38,8 @@ def build_application_whatsapp_url(application: Application, request):
         f"Applicant: {application.full_name}",
         f"Date of Birth: {date_of_birth}",
         f"Age: {application.age if application.age is not None else 'Not provided'}",
+        f"Age category: {application.get_age_category_display() or 'Not provided'}",
+        f"Gender: {application.get_gender_display() or 'Not provided'}",
         f"City, then town: {application.location}",
         f"Phone: {application.phone}",
         f"Email: {application.email}",

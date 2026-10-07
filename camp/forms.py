@@ -32,6 +32,11 @@ class ApplicationPhotoField(forms.ImageField):
 
 class ApplicationForm(forms.ModelForm):
     submission_key = forms.UUIDField(widget=forms.HiddenInput)
+    gender = forms.ChoiceField(
+        label="Gender",
+        choices=Application.Gender.choices,
+        required=True,
+    )
     date_of_birth = forms.DateField(
         label="Date of birth",
         required=True,
@@ -101,6 +106,8 @@ class ApplicationForm(forms.ModelForm):
             "phone",
             "whatsapp_number",
             "date_of_birth",
+            "age_category",
+            "gender",
             "location",
             "current_occupation",
             "preferred_days",
@@ -116,11 +123,14 @@ class ApplicationForm(forms.ModelForm):
             "guardian_phone",
         ]
         labels = {
+            "age_category": "Age category",
+            "gender": "Gender",
             "social_handle": "Instagram handle",
             "location": "City, then town",
             "about": "Anything else you'd like us to know?",
         }
         help_texts = {
+            "age_category": "Choose the category that matches your calculated age.",
             "location": "Enter your city, followed by your town.",
         }
         widgets = {
@@ -172,6 +182,18 @@ class ApplicationForm(forms.ModelForm):
                         "Please enter a valid date of birth.",
                     )
         cleaned_data["age"] = age
+        age_category = cleaned_data.get("age_category")
+        expected_category = self.age_category_for_age(age)
+        if age is not None and expected_category is None:
+            self.add_error(
+                "date_of_birth",
+                "Applicants must be between 5 and 28 years old.",
+            )
+        elif age_category and expected_category != age_category:
+            self.add_error(
+                "age_category",
+                "Please select the category that matches your age.",
+            )
         if age is not None and age < 18:
             if not cleaned_data.get("guardian_name"):
                 self.add_error(
@@ -191,6 +213,18 @@ class ApplicationForm(forms.ModelForm):
         if cleaned_data.get("has_modelling_experience") is False:
             cleaned_data["previous_experience"] = ""
         return cleaned_data
+
+    @staticmethod
+    def age_category_for_age(age):
+        if age is None:
+            return None
+        if 5 <= age <= 12:
+            return Application.AgeCategory.KIDS
+        if 13 <= age <= 18:
+            return Application.AgeCategory.TEENS
+        if 19 <= age <= 28:
+            return Application.AgeCategory.SENIORS
+        return None
 
     def clean_available_full_five_weeks(self):
         return self.cleaned_data["available_full_five_weeks"] == "yes"

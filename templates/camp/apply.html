@@ -3,6 +3,7 @@
 {% block title %}Apply — Local Faces Agency Summer Camp{% endblock %}
 {% block content %}
 <section class="form-page" style="--campaign-image: url('{% static '2.jpg' %}')">
+  <p id="kids-application-notice" class="kids-application-notice" role="status" hidden>Applications for the Kids category will open in 2027.</p>
   <div class="form-heading">
     <div class="section-label"><span>LOCAL FACES AGENCY</span> 6-WEEK SUMMER CAMP</div>
     <h1>Kindly complete<br>the <em>fields below.</em></h1>
@@ -29,7 +30,7 @@
       </div>
       <div class="form-fields-grid">
         {% for field in form %}
-          {% if field.name == "full_name" or field.name == "email" or field.name == "phone" or field.name == "whatsapp_number" or field.name == "date_of_birth" or field.name == "location" or field.name == "current_occupation" or field.name == "preferred_days" or field.name == "available_full_five_weeks" or field.name == "has_modelling_experience" or field.name == "social_handle" or field.name == "tiktok_handle" or field.name == "previous_experience" or field.name == "about" or field.name == "guardian_name" or field.name == "guardian_phone" %}
+          {% if field.name == "full_name" or field.name == "email" or field.name == "phone" or field.name == "whatsapp_number" or field.name == "date_of_birth" or field.name == "age_category" or field.name == "gender" or field.name == "location" or field.name == "current_occupation" or field.name == "preferred_days" or field.name == "available_full_five_weeks" or field.name == "has_modelling_experience" or field.name == "social_handle" or field.name == "tiktok_handle" or field.name == "previous_experience" or field.name == "about" or field.name == "guardian_name" or field.name == "guardian_phone" %}
             <div class="form-field {% if field.name == 'about' or field.name == 'previous_experience' or field.name == 'preferred_days' %}form-field-wide{% endif %} {% if field.name == 'preferred_days' %}availability-field choice-grid{% endif %} {% if field.name == 'previous_experience' %}modelling-experience-details{% endif %} {% if field.errors %}has-error{% endif %}" {% if field.name == "previous_experience" %}data-modelling-experience-details{% endif %}>
               <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>
               {{ field }}

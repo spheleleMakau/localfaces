@@ -12,6 +12,7 @@ from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
+from .forms import ApplicationForm
 from .models import Application, ApplicationPhoto
 from .sharing import application_share_token
 from .whatsapp import build_application_whatsapp_url
@@ -41,6 +42,24 @@ class CampPagesTests(TestCase):
         self.assertEqual(self.client.get("/faq/").status_code, 404)
         self.assertEqual(self.client.get("/home/").status_code, 404)
 
+    def test_age_category_ranges_include_age_18_with_teens(self):
+        category_by_age = {
+            4: None,
+            5: Application.AgeCategory.KIDS,
+            12: Application.AgeCategory.KIDS,
+            13: Application.AgeCategory.TEENS,
+            18: Application.AgeCategory.TEENS,
+            19: Application.AgeCategory.SENIORS,
+            28: Application.AgeCategory.SENIORS,
+            29: None,
+        }
+        for age, expected_category in category_by_age.items():
+            with self.subTest(age=age):
+                self.assertEqual(
+                    ApplicationForm.age_category_for_age(age),
+                    expected_category,
+                )
+
     def test_application_form_shows_six_week_details_and_two_required_photo_slots(self):
         response = self.client.get(reverse("camp:apply"))
         self.assertEqual(response.status_code, 200)
@@ -60,6 +79,25 @@ class CampPagesTests(TestCase):
         self.assertNotContains(response, "Preferred time")
         self.assertNotContains(response, 'name="preferred_time"')
         self.assertContains(response, "6-WEEK SUMMER CAMP")
+        self.assertContains(response, "Age category")
+        self.assertContains(response, "Kids (5–12)")
+        self.assertContains(response, "Teens (13–18)")
+        self.assertContains(response, "Seniors (19–28)")
+        self.assertContains(response, "Gender")
+        self.assertContains(response, "Male")
+        self.assertContains(response, "Female")
+        self.assertContains(
+            response,
+            'id="kids-application-notice"',
+        )
+        self.assertContains(response, 'name="gender"')
+        self.assertTrue(response.context["form"]["gender"].field.required)
+        self.assertContains(response, 'hidden>Applications for the Kids category')
+        content = response.content.decode()
+        self.assertLess(
+            content.index('id="kids-application-notice"'),
+            content.index('class="form-heading"'),
+        )
         self.assertContains(response, "Available for the full 6 weeks?")
         self.assertContains(response, "Do you have any modelling experience?")
         self.assertContains(response, "Instagram handle")
@@ -133,6 +171,8 @@ class ApplicationSubmissionTests(TestCase):
             "phone": "+27123456789",
             "whatsapp_number": "+27671234567",
             "date_of_birth": "2006-01-01",
+            "age_category": "seniors",
+            "gender": "female",
             "location": "Cape Town",
             "current_occupation": "Student",
             "preferred_days": "Friday",
@@ -174,6 +214,8 @@ class ApplicationSubmissionTests(TestCase):
         self.assertTrue(application.application_number.startswith("LFA-2026-"))
         self.assertEqual(application.date_of_birth, date(2006, 1, 1))
         self.assertEqual(application.age, 20)
+        self.assertEqual(application.age_category, Application.AgeCategory.SENIORS)
+        self.assertEqual(application.gender, Application.Gender.FEMALE)
         self.assertEqual(application.preferred_days, ["Friday"])
         self.assertEqual(application.areas_of_interest, [])
         self.assertTrue(application.available_full_five_weeks)
@@ -215,6 +257,8 @@ class ApplicationSubmissionTests(TestCase):
             "Jordan Example",
             "01 January 2006",
             "20",
+            "Age category: Seniors (19–28)",
+            "Gender: Female",
             "Cape Town",
             "City, then town: Cape Town",
             "jordan@example.com",
@@ -244,6 +288,8 @@ class ApplicationSubmissionTests(TestCase):
         self.assertContains(full_application, "Jordan Example")
         self.assertContains(full_application, "Community theatre")
         self.assertContains(full_application, "Friday")
+        self.assertContains(full_application, "Seniors (19–28)")
+        self.assertContains(full_application, "Female")
         self.assertContains(full_application, "Modelling experience")
 
     def test_two_required_photos_are_saved_and_visible_on_private_photo_page(self):
@@ -300,6 +346,12 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
+        no_gender_answer = self.submission_data()
+        no_gender_answer.pop("gender")
+        response = self.client.post(reverse("camp:apply"), no_gender_answer)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Application.objects.exists())
+
     def test_no_modelling_experience_discards_optional_experience_details(self):
         self.client.post(
             reverse("camp:apply"),
@@ -321,10 +373,58 @@ class ApplicationSubmissionTests(TestCase):
         self.assertFalse(Application.objects.exists())
         self.assertContains(response, "cannot be in the future")
 
+    def test_age_category_must_match_date_of_birth(self):
+        response = self.client.post(
+            reverse("camp:apply"),
+            self.submission_data(age_category="kids"),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Application.objects.exists())
+        self.assertContains(response, "matches your age")
+
+    def test_kids_category_accepts_age_12_and_shows_2027_notice(self):
+        response = self.client.post(
+            reverse("camp:apply"),
+            self.submission_data(
+                date_of_birth="2014-01-01",
+                age_category="kids",
+                gender="male",
+                guardian_name="Jordan Guardian",
+                guardian_phone="+27123456789",
+                guardian_consent="on",
+            ),
+        )
+        application = Application.objects.get()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(application.age, 12)
+        self.assertEqual(application.age_category, Application.AgeCategory.KIDS)
+        self.assertEqual(application.gender, Application.Gender.MALE)
+        self.assertIn(
+            "Age category: Kids (5–12)",
+            parse_qs(urlsplit(response["Location"]).query)["text"][0],
+        )
+
+    def test_age_outside_category_ranges_is_rejected(self):
+        for dob in ("2022-01-01", "1997-01-01"):
+            with self.subTest(date_of_birth=dob):
+                response = self.client.post(
+                    reverse("camp:apply"),
+                    self.submission_data(date_of_birth=dob),
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertFalse(Application.objects.exists())
+                self.assertContains(
+                    response,
+                    "Applicants must be between 5 and 28 years old.",
+                )
+
     def test_under_18_applicant_needs_guardian_details_and_consent(self):
         response = self.client.post(
             reverse("camp:apply"),
-            self.submission_data(date_of_birth="2010-01-01"),
+            self.submission_data(
+                date_of_birth="2010-01-01",
+                age_category="teens",
+            ),
         )
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
@@ -365,6 +465,8 @@ class WhatsAppHandoffTests(TestCase):
             whatsapp_number="+27671234567",
             date_of_birth=date(2005, 1, 1),
             age=21,
+            age_category=Application.AgeCategory.SENIORS,
+            gender=Application.Gender.FEMALE,
             location="Durban",
             current_occupation="Student",
             preferred_days=["Friday"],
@@ -389,6 +491,8 @@ class WhatsAppHandoffTests(TestCase):
         self.assertIn("morgan@example.com", message)
         self.assertIn("Available day: Friday", message)
         self.assertIn("Available for Full 6 Weeks: Yes", message)
+        self.assertIn("Age category: Seniors (19–28)", message)
+        self.assertIn("Gender: Female", message)
         self.assertIn("Modelling experience: Yes", message)
         self.assertIn("Instagram: @morgan", message)
         self.assertIn("TikTok: Not provided", message)

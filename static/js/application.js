@@ -6,6 +6,10 @@ if (form) {
   const maximumPhotoMegabytes = form.dataset.maxPhotoMb;
   const dobInput = form.querySelector('input[name="date_of_birth"]');
   const ageOutput = document.querySelector("#calculated-age");
+  const ageCategoryInput = form.querySelector('select[name="age_category"]');
+  const kidsApplicationNotice = document.querySelector(
+    "#kids-application-notice",
+  );
   const modellingExperienceInput = form.querySelector(
     'select[name="has_modelling_experience"]',
   );
@@ -30,6 +34,15 @@ if (form) {
 
   dobInput?.addEventListener("input", updateAge);
   updateAge();
+
+  const updateKidsApplicationNotice = () => {
+    if (ageCategoryInput && kidsApplicationNotice) {
+      kidsApplicationNotice.hidden = ageCategoryInput.value !== "kids";
+    }
+  };
+
+  ageCategoryInput?.addEventListener("change", updateKidsApplicationNotice);
+  updateKidsApplicationNotice();
 
   const updateModellingExperienceDetails = () => {
     if (modellingExperienceDetails && modellingExperienceInput) {

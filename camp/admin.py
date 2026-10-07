@@ -73,6 +73,8 @@ class ApplicationAdmin(admin.ModelAdmin):
                     "whatsapp_number",
                     "date_of_birth",
                     "age",
+                    "age_category",
+                    "gender",
                     "location",
                     "current_occupation",
                     "preferred_days",

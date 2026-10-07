@@ -12,6 +12,15 @@ def application_photo_path(instance, filename):
 
 
 class Application(models.Model):
+    class AgeCategory(models.TextChoices):
+        KIDS = "kids", "Kids (5–12)"
+        TEENS = "teens", "Teens (13–18)"
+        SENIORS = "seniors", "Seniors (19–28)"
+
+    class Gender(models.TextChoices):
+        MALE = "male", "Male"
+        FEMALE = "female", "Female"
+
     class PreferredTime(models.TextChoices):
         MORNING = "morning", "Morning"
         AFTERNOON = "afternoon", "Afternoon"
@@ -54,6 +63,10 @@ class Application(models.Model):
     whatsapp_number = models.CharField(max_length=32, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     age = models.PositiveSmallIntegerField(null=True, blank=True)
+    age_category = models.CharField(
+        max_length=12, choices=AgeCategory.choices, blank=True
+    )
+    gender = models.CharField(max_length=8, choices=Gender.choices, blank=True)
     location = models.CharField(max_length=120)
     current_occupation = models.CharField(max_length=120, blank=True)
     preferred_days = models.JSONField("Available day", default=list, blank=True)
