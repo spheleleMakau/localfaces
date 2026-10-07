@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Application received — Local Faces Agency{% endblock %}
+{% block content %}
+<section class="success-page">
+  <div class="success-art" aria-hidden="true"><span>LF</span><i></i><b></b></div>
+  <div class="success-copy">
+    <p class="eyebrow"><span class="eyebrow-line"></span> APPLICATION RECEIVED</p>
+    <h1>Thank you.<br><em>Your story starts here.</em></h1>
+    <p class="body-large">Your application has been received. To send an application notification to Local Faces Agency via WhatsApp, tap the button below. WhatsApp will open with a message prepared for you; review it and tap Send.</p>
+    <div class="application-reference"><span>YOUR APPLICATION NUMBER</span><strong>{{ application.application_number }}</strong></div>
+    <a class="button button-dark whatsapp-submit" href="{{ whatsapp_url }}">Send application via WhatsApp <span aria-hidden="true">↗</span></a>
+    <p class="muted">Your application is saved even if you choose not to send the WhatsApp message. The message contains private application links; only share them with the agency.</p>
+    <a class="text-link" href="{% url 'camp:apply' %}">Return to the application</a>
+  </div>
+</section>
+{% endblock %}

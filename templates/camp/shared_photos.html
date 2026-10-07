@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Photographs — {{ application.application_number }}{% endblock %}
+{% block content %}
+<section class="shared-page">
+  <div class="shared-heading">
+    <div class="section-label"><span>PRIVATE LINK</span> LOCAL FACES AGENCY</div>
+    <h1>Photographs<br><em>{{ application.application_number }}</em></h1>
+    <p>Photographs submitted by {{ application.full_name }}. This private link can be used to view the images.</p>
+  </div>
+  <div class="shared-card">
+    <div class="shared-section">
+      <span>01 / APPLICANT PHOTOGRAPHS</span>
+      <div class="shared-photos">
+        {% for photo in application.photos.all %}
+          <a href="{% url 'camp:shared_photo' share_token photo.pk %}" target="_blank" rel="noopener">
+            <img src="{% url 'camp:shared_photo' share_token photo.pk %}" alt="{{ photo.get_photo_type_display }} photograph for {{ application.full_name }}" loading="lazy">
+            <span>{{ photo.get_photo_type_display }} · View full size ↗</span>
+          </a>
+        {% empty %}
+          <p>No photographs were uploaded.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <a class="text-link" href="{% url 'camp:shared_application' share_token %}">View full application</a>
+  </div>
+</section>
+{% endblock %}

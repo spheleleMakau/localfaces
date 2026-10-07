@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Apply — Local Faces Agency Summer Camp{% endblock %}
+{% block content %}
+<section class="form-page" style="--campaign-image: url('{% static '2.jpg' %}')">
+  <div class="form-heading">
+    <div class="section-label"><span>LOCAL FACES AGENCY</span> 5-WEEK SUMMER CAMP</div>
+    <h1>Kindly complete<br>the <em>fields below.</em></h1>
+    <p>Share a few details and photographs in one go. Fields marked with <span class="required-mark">*</span> are required.</p>
+  </div>
+  <div class="form-layout">
+    <aside class="form-aside" aria-label="Summer camp campaign">
+      <div class="form-campaign-art">
+        <img src="{% static '2.jpg' %}" alt="Local Faces Agency five-week summer modelling academy campaign">
+        <span>LET'S GET<br>STARTED!</span>
+      </div>
+      <div class="form-campaign-secondary">
+        <img src="{% static '1.jpg' %}" alt="Local Faces Agency summer modelling campaign with programme overview">
+      </div>
+    </aside>
+    <form class="application-form" id="application-form" method="post" enctype="multipart/form-data" data-application-form data-max-photos="{{ max_application_photos }}" data-max-photo-bytes="{{ max_application_photo_bytes }}" data-max-photo-mb="{{ photo_max_mb }}">
+      {% csrf_token %}
+      {{ form.submission_key }}
+      {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="form-step-heading">
+        <span>SUMMER CAMP APPLICATION</span>
+        <h2>Your details</h2>
+        <p>Complete the details below and submit your application.</p>
+      </div>
+      <div class="form-fields-grid">
+        {% for field in form %}
+          {% if field.name == "full_name" or field.name == "email" or field.name == "phone" or field.name == "whatsapp_number" or field.name == "date_of_birth" or field.name == "location" or field.name == "current_occupation" or field.name == "preferred_time" or field.name == "available_full_five_weeks" or field.name == "social_handle" or field.name == "previous_experience" or field.name == "about" or field.name == "guardian_name" or field.name == "guardian_phone" %}
+            <div class="form-field {% if field.name == 'about' or field.name == 'previous_experience' %}form-field-wide{% endif %} {% if field.errors %}has-error{% endif %}">
+              <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>
+              {{ field }}
+              {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+              {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+            {% if field.name == "date_of_birth" %}
+              <div class="form-field age-calculation">
+                <span class="age-calculation-label">Age</span>
+                <output id="calculated-age" aria-live="polite">Calculated from your date of birth</output>
+              </div>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
+      <fieldset class="photo-uploads">
+        <legend>Applicant photographs <span class="required-mark">*</span></legend>
+        <p class="photo-uploads-intro">A headshot and full body photo are required.{% if optional_photo_limit %} You may add one optional photo.{% endif %} JPG, JPEG or PNG · Up to {{ photo_max_mb }} MB each.</p>
+        <div class="photo-uploads-grid">
+          {% for field in form %}
+            {% if field.name == "headshot" or field.name == "full_length_photo" or field.name == "additional_photo_1" %}
+              <div class="form-field photo-upload-field {% if field.errors %}has-error{% endif %}" {% if field.name == "additional_photo_1" and optional_photo_limit < 1 %}hidden{% endif %}>
+                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% else %} <span class="optional-mark">OPTIONAL</span>{% endif %}</label>
+                <div class="upload-box"><span class="upload-icon" aria-hidden="true">↥</span>{{ field }}<span class="upload-prompt">Choose this photograph</span><small>JPG, JPEG or PNG · Max {{ photo_max_mb }} MB</small></div>
+                {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                <div class="photo-preview" data-photo-preview aria-live="polite"></div>
+                {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </fieldset>
+      <div class="privacy-note"><strong>Privacy:</strong> Your details and photographs are collected for application review and follow-up by Local Faces Agency. Submitting this form does not publish your photographs. Please do not include sensitive information that is not relevant to your application.</div>
+      <div class="consent-fields">
+        {% for field in form %}
+          {% if field.name == "privacy_consent" or field.name == "photo_consent" or field.name == "guardian_consent" %}
+            <div class="checkbox-field {% if field.errors %}has-error{% endif %}">
+              {{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-mark">*</span>{% endif %}</label>
+              {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="form-controls form-controls-submit"><span class="required-hint"><span class="required-mark">*</span> Required fields</span><button class="button button-accent submit-application" type="submit">Submit application <span aria-hidden="true">↗</span></button></div>
+    </form>
+  </div>
+</section>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/application.js' %}" defer></script>{% endblock %}

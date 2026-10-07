@@ -1,0 +1,46 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f2eb">
+  <meta name="description" content="Apply to the Local Faces Agency 5-Week Summer Camp.">
+  <title>{% block title %}Local Faces Agency — 5-Week Summer Camp{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="{% url 'camp:apply' %}" aria-label="Local Faces Agency application">
+      <span class="brand-mark" aria-hidden="true">LF</span>
+      <span class="brand-name">LOCAL FACES <span>AGENCY</span></span>
+    </a>
+    <a class="button button-small button-dark header-apply" href="#application-form">Apply now <span aria-hidden="true">↓</span></a>
+  </header>
+
+  <main id="main">
+    {% if messages %}
+      <div class="flash-messages" role="status">
+        {% for message in messages %}<p class="flash flash-{{ message.tags }}">{{ message }}</p>{% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand brand-footer" href="{% url 'camp:apply' %}">
+      <span class="brand-mark" aria-hidden="true">LF</span>
+      <span class="brand-name">LOCAL FACES <span>AGENCY</span></span>
+    </a>
+    <p>5-Week Summer Camp <span aria-hidden="true">·</span> Local Faces Agency</p>
+    <small>Programme details are subject to confirmation by Local Faces Agency.</small>
+  </footer>
+  <script src="{% static 'js/site.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

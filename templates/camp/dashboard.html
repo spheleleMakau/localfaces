@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Applications — Local Faces Agency{% endblock %}
+{% block content %}
+<section class="dashboard-page">
+  <div class="dashboard-heading">
+    <div><div class="section-label"><span>PRIVATE AREA</span> AGENCY DASHBOARD</div><h1>Applications<span>.</span></h1><p>Review applicant details, photographs and application status.</p></div>
+    <a class="button button-dark" href="{% url 'admin:index' %}">Open Django admin <span aria-hidden="true">↗</span></a>
+  </div>
+  <div class="dashboard-stats">
+    <div><span>NEW</span><strong>{{ status_counts.new|default:"0" }}</strong></div>
+    <div><span>REVIEWING</span><strong>{{ status_counts.reviewing|default:"0" }}</strong></div>
+    <div><span>ACCEPTED</span><strong>{{ status_counts.accepted|default:"0" }}</strong></div>
+    <div><span>TOTAL APPLICATIONS</span><strong>{{ applications|length }}</strong></div>
+  </div>
+  <div class="dashboard-table-wrap">
+    {% if applications %}
+      <table class="application-table">
+        <thead><tr><th>Applicant</th><th>Application</th><th>Received</th><th>Review status</th><th></th></tr></thead>
+        <tbody>
+          {% for application in applications %}
+            <tr>
+              <td><strong>{{ application.full_name }}</strong><small>{{ application.email }}</small></td>
+              <td>{{ application.application_number }}</td>
+              <td>{{ application.submitted_at|date:"j M Y, H:i" }}</td>
+              <td><span class="status-pill status-{{ application.status }}">{{ application.get_status_display }}</span></td>
+              <td class="table-actions">
+                <a class="table-link" href="{{ application.review_url }}">View application</a>
+                <a class="table-link" href="{% url 'admin:camp_application_change' application.pk %}">Manage</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="dashboard-empty"><span aria-hidden="true">✳</span><h2>No applications yet</h2><p>New applications will appear here as soon as they are submitted.</p></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
