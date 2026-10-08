@@ -36,6 +36,6 @@ services:
       - key: DJANGO_MEDIA_ROOT
         value: /var/data/private_uploads
       - key: LOCAL_FACES_WHATSAPP_NUMBER
-        value: 27798291238
+        value: 27681946795
       - key: MAX_APPLICATION_PHOTO_BYTES
         value: "8388608"
