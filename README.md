@@ -51,7 +51,7 @@ The included `render.yaml` Blueprint configures the Django web service, PostgreS
 3. Apply the Blueprint. Render runs the build command, which installs dependencies, applies migrations and collects static files. Render then starts the app with Gunicorn.
 4. Create an agency administrator from the Render Shell with `python manage.py createsuperuser`.
 5. Set `LOCAL_FACES_WHATSAPP_NUMBER` to the agency number in international digits-only format.
-6. Visit the `onrender.com` URL to check the site and `/django-admin/` to manage applications. Add any custom domain to `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` in the service environment.
+6. Visit the `onrender.com` URL to check the site and `/django-admin/` to manage applications. The Blueprint allows `localfaces.co.za` and `www.localfaces.co.za`; add any other custom domains to `DJANGO_ALLOWED_HOSTS` and their HTTPS origins to `DJANGO_CSRF_TRUSTED_ORIGINS` in the service environment.
 
 **Render build command:** `bash build.sh`
 

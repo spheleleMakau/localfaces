@@ -23,6 +23,10 @@ services:
         value: 3.13.4
       - key: DJANGO_DEBUG
         value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: localfaces.co.za,www.localfaces.co.za
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: https://localfaces.co.za,https://www.localfaces.co.za
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
