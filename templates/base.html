@@ -17,8 +17,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <a class="brand" href="{% url 'camp:apply' %}" aria-label="Local Faces Agency application">
-      <span class="brand-mark" aria-hidden="true">LF</span>
-      <span class="brand-name">LOCAL FACES <span>AGENCY</span></span>
+      <img class="brand-logo" src="{% static 'logo.jpg' %}" alt="Local Faces Agency">
     </a>
     <a class="button button-small button-dark header-apply" href="#application-form">Apply now <span aria-hidden="true">↓</span></a>
   </header>
@@ -34,8 +33,7 @@
 
   <footer class="site-footer">
     <a class="brand brand-footer" href="{% url 'camp:apply' %}">
-      <span class="brand-mark" aria-hidden="true">LF</span>
-      <span class="brand-name">LOCAL FACES <span>AGENCY</span></span>
+      <img class="brand-logo" src="{% static 'logo.jpg' %}" alt="Local Faces Agency">
     </a>
     <p>6-Week Summer Camp <span aria-hidden="true">·</span> Local Faces Agency</p>
     <small>Programme details are subject to confirmation by Local Faces Agency.</small>

@@ -37,6 +37,11 @@ class CampPagesTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, 'data-application-form')
                 self.assertContains(response, 'name="submission_key"')
+                self.assertContains(
+                    response,
+                    '<img class="brand-logo" src="/static/logo.',
+                    count=2,
+                )
 
     def test_other_public_pages_have_been_removed(self):
         self.assertEqual(self.client.get("/faq/").status_code, 404)
