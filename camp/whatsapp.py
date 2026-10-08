@@ -26,21 +26,16 @@ def build_application_whatsapp_url(application: Application, request):
     photos_url = request.build_absolute_uri(
         reverse("camp:shared_photos", args=[token])
     )
-    date_of_birth = (
-        application.date_of_birth.strftime("%d %B %Y")
-        if application.date_of_birth
-        else "Not provided"
-    )
     lines = [
         "NEW LOCAL FACES SUMMER CAMP APPLICATION",
         "",
         f"Application: {application.application_number}",
         f"Applicant: {application.full_name}",
-        f"Date of Birth: {date_of_birth}",
         f"Age: {application.age if application.age is not None else 'Not provided'}",
         f"Age category: {application.get_age_category_display() or 'Not provided'}",
         f"Gender: {application.get_gender_display() or 'Not provided'}",
-        f"City, then town: {application.location}",
+        f"City: {application.city}",
+        f"Town: {application.town or 'Not provided'}",
         f"Phone: {application.phone}",
         f"Email: {application.email}",
         f"WhatsApp: {application.whatsapp_number or 'Not provided'}",

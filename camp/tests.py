@@ -1,4 +1,3 @@
-from datetime import date
 from io import BytesIO
 import tempfile
 from pathlib import Path
@@ -68,8 +67,8 @@ class CampPagesTests(TestCase):
     def test_application_form_shows_six_week_details_and_two_required_photo_slots(self):
         response = self.client.get(reverse("camp:apply"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'name="date_of_birth"')
-        self.assertContains(response, 'id="calculated-age"')
+        self.assertContains(response, 'name="age"')
+        self.assertNotContains(response, 'name="date_of_birth"')
         self.assertNotContains(response, "Select all days that suit you.")
         self.assertNotContains(response, "Monday")
         self.assertNotContains(response, "Areas of interest")
@@ -97,6 +96,9 @@ class CampPagesTests(TestCase):
         )
         self.assertContains(response, 'name="gender"')
         self.assertTrue(response.context["form"]["gender"].field.required)
+        self.assertTrue(response.context["form"]["age"].field.required)
+        self.assertTrue(response.context["form"]["city"].field.required)
+        self.assertTrue(response.context["form"]["town"].field.required)
         self.assertContains(response, 'hidden>Disclaimer: Applications for the Kids category')
         content = response.content.decode()
         self.assertLess(
@@ -107,7 +109,8 @@ class CampPagesTests(TestCase):
         self.assertContains(response, "Do you have any modelling experience?")
         self.assertContains(response, "Instagram handle")
         self.assertContains(response, "TikTok handle")
-        self.assertContains(response, "City, then town")
+        self.assertContains(response, 'name="city"')
+        self.assertContains(response, 'name="town"')
         self.assertContains(response, "Submit application")
         self.assertContains(response, 'name="headshot"')
         self.assertContains(response, 'name="full_length_photo"')
@@ -115,7 +118,6 @@ class CampPagesTests(TestCase):
         self.assertNotContains(response, "OPTIONAL")
         self.assertContains(response, "Picture 1 — Full length")
         self.assertContains(response, "Picture 2 — Profile / selfie")
-        self.assertContains(response, "Enter your city, followed by your town.")
         self.assertNotContains(response, "application/shoulder_up_photo")
 
     def test_dashboard_requires_staff_login(self):
@@ -143,7 +145,7 @@ class CampPagesTests(TestCase):
             full_name="Jamie Applicant",
             email="jamie@example.com",
             phone="+27123456789",
-            location="Pretoria",
+            city="Pretoria",
             privacy_consent=True,
             photo_consent=True,
         )
@@ -175,10 +177,11 @@ class ApplicationSubmissionTests(TestCase):
             "email": "jordan@example.com",
             "phone": "+27123456789",
             "whatsapp_number": "+27671234567",
-            "date_of_birth": "2006-01-01",
+            "age": "20",
             "age_category": "seniors",
             "gender": "female",
-            "location": "Cape Town",
+            "city": "Cape Town",
+            "town": "Sea Point",
             "current_occupation": "Student",
             "preferred_days": "Friday",
             "available_full_five_weeks": "yes",
@@ -217,10 +220,13 @@ class ApplicationSubmissionTests(TestCase):
         self.assertIn("PHOTOS: http://testserver/application/", message)
         self.assertIn("FULL APPLICATION: http://testserver/application/", message)
         self.assertTrue(application.application_number.startswith("LFA-2026-"))
-        self.assertEqual(application.date_of_birth, date(2006, 1, 1))
         self.assertEqual(application.age, 20)
+        self.assertIsNone(application.date_of_birth)
+        self.assertEqual(application.city, "Cape Town")
+        self.assertEqual(application.town, "Sea Point")
         self.assertEqual(application.age_category, Application.AgeCategory.SENIORS)
         self.assertEqual(application.gender, Application.Gender.FEMALE)
+        self.assertNotIn("Date of Birth:", message)
         self.assertEqual(application.preferred_days, ["Friday"])
         self.assertEqual(application.areas_of_interest, [])
         self.assertTrue(application.available_full_five_weeks)
@@ -260,12 +266,11 @@ class ApplicationSubmissionTests(TestCase):
         for expected in (
             application.application_number,
             "Jordan Example",
-            "01 January 2006",
             "20",
             "Age category: Seniors (19–28)",
             "Gender: Female",
-            "Cape Town",
-            "City, then town: Cape Town",
+            "City: Cape Town",
+            "Town: Sea Point",
             "jordan@example.com",
             "Student",
             "Available day: Friday",
@@ -295,6 +300,9 @@ class ApplicationSubmissionTests(TestCase):
         self.assertContains(full_application, "Friday")
         self.assertContains(full_application, "Seniors (19–28)")
         self.assertContains(full_application, "Female")
+        self.assertContains(full_application, "Cape Town")
+        self.assertContains(full_application, "Sea Point")
+        self.assertNotContains(full_application, "Date of birth")
         self.assertContains(full_application, "Modelling experience")
 
     def test_two_required_photos_are_saved_and_visible_on_private_photo_page(self):
@@ -325,10 +333,10 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(Application.objects.count(), 1)
         self.assertEqual(ApplicationPhoto.objects.count(), 2)
 
-    def test_missing_date_of_birth_or_required_photo_is_rejected(self):
-        no_dob = self.submission_data()
-        no_dob.pop("date_of_birth")
-        response = self.client.post(reverse("camp:apply"), no_dob)
+    def test_missing_age_or_required_photo_is_rejected(self):
+        no_age = self.submission_data()
+        no_age.pop("age")
+        response = self.client.post(reverse("camp:apply"), no_age)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
@@ -337,6 +345,15 @@ class ApplicationSubmissionTests(TestCase):
         response = self.client.post(reverse("camp:apply"), no_headshot)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
+
+    def test_city_and_town_are_required_separately(self):
+        for field in ("city", "town"):
+            with self.subTest(field=field):
+                data = self.submission_data()
+                data.pop(field)
+                response = self.client.post(reverse("camp:apply"), data)
+                self.assertEqual(response.status_code, 200)
+                self.assertFalse(Application.objects.exists())
 
     def test_availability_and_modelling_experience_are_required(self):
         no_available_days = self.submission_data()
@@ -369,16 +386,7 @@ class ApplicationSubmissionTests(TestCase):
         self.assertFalse(application.has_modelling_experience)
         self.assertEqual(application.previous_experience, "")
 
-    def test_future_date_of_birth_is_rejected(self):
-        response = self.client.post(
-            reverse("camp:apply"),
-            self.submission_data(date_of_birth="2030-01-01"),
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(Application.objects.exists())
-        self.assertContains(response, "cannot be in the future")
-
-    def test_age_category_must_match_date_of_birth(self):
+    def test_age_category_must_match_typed_age(self):
         response = self.client.post(
             reverse("camp:apply"),
             self.submission_data(age_category="kids"),
@@ -391,7 +399,7 @@ class ApplicationSubmissionTests(TestCase):
         response = self.client.post(
             reverse("camp:apply"),
             self.submission_data(
-                date_of_birth="2014-01-01",
+                age="12",
                 age_category="kids",
                 gender="male",
                 guardian_name="Jordan Guardian",
@@ -410,11 +418,11 @@ class ApplicationSubmissionTests(TestCase):
         )
 
     def test_age_outside_category_ranges_is_rejected(self):
-        for dob in ("2022-01-01", "1997-01-01"):
-            with self.subTest(date_of_birth=dob):
+        for age in ("4", "29"):
+            with self.subTest(age=age):
                 response = self.client.post(
                     reverse("camp:apply"),
-                    self.submission_data(date_of_birth=dob),
+                    self.submission_data(age=age),
                 )
                 self.assertEqual(response.status_code, 200)
                 self.assertFalse(Application.objects.exists())
@@ -427,7 +435,7 @@ class ApplicationSubmissionTests(TestCase):
         response = self.client.post(
             reverse("camp:apply"),
             self.submission_data(
-                date_of_birth="2010-01-01",
+                age="16",
                 age_category="teens",
             ),
         )
@@ -468,11 +476,11 @@ class WhatsAppHandoffTests(TestCase):
             email="morgan@example.com",
             phone="+27123456789",
             whatsapp_number="+27671234567",
-            date_of_birth=date(2005, 1, 1),
             age=21,
             age_category=Application.AgeCategory.SENIORS,
             gender=Application.Gender.FEMALE,
-            location="Durban",
+            city="Durban",
+            town="Umhlanga",
             current_occupation="Student",
             preferred_days=["Friday"],
             available_full_five_weeks=True,
@@ -517,7 +525,7 @@ class WhatsAppHandoffTests(TestCase):
             full_name="Morgan Applicant",
             email="morgan@example.com",
             phone="+27123456789",
-            location="Durban",
+            city="Durban",
         )
         request = RequestFactory().get("/", HTTP_HOST="agency.example", secure=True)
         from django.core.exceptions import ImproperlyConfigured
@@ -541,7 +549,7 @@ class PrivatePhotoTests(TestCase):
             full_name="Taylor Example",
             email="taylor@example.com",
             phone="+27123456789",
-            location="Johannesburg",
+            city="Johannesburg",
             privacy_consent=True,
             photo_consent=True,
         )

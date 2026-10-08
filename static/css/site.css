@@ -209,26 +209,6 @@ h1 em, h2 em { color: var(--accent); font-family: Georgia, "Times New Roman", se
   font-weight: 500;
   letter-spacing: .1em;
 }
-.age-calculation {
-  align-self: start;
-  padding-top: 1px;
-}
-.age-calculation-label {
-  display: block;
-  margin-bottom: 7px;
-  color: #51483a;
-  font-size: 11px;
-  font-weight: 600;
-}
-.age-calculation output {
-  display: block;
-  min-height: 45px;
-  padding: 11px 12px;
-  border: 1px solid #e3dbce;
-  background: #f8f7f3;
-  color: #756d62;
-  font-size: 12px;
-}
 .kids-application-notice {
   display: block;
   grid-column: 1 / -1;

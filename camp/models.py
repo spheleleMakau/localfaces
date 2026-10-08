@@ -67,7 +67,8 @@ class Application(models.Model):
         max_length=12, choices=AgeCategory.choices, blank=True
     )
     gender = models.CharField(max_length=8, choices=Gender.choices, blank=True)
-    location = models.CharField(max_length=120)
+    city = models.CharField(max_length=120)
+    town = models.CharField(max_length=120, blank=True)
     current_occupation = models.CharField(max_length=120, blank=True)
     preferred_days = models.JSONField("Available day", default=list, blank=True)
     preferred_time = models.CharField(
@@ -98,17 +99,6 @@ class Application(models.Model):
     class Meta:
         ordering = ["-submitted_at"]
 
-    @staticmethod
-    def age_for_date(date_of_birth, today=None):
-        if date_of_birth is None:
-            return None
-        today = today or timezone.localdate()
-        return (
-            today.year
-            - date_of_birth.year
-            - ((today.month, today.day) < (date_of_birth.month, date_of_birth.day))
-        )
-
     def save(self, *args, **kwargs):
         if not self.share_token:
             self.share_token = uuid.uuid4()
@@ -116,8 +106,6 @@ class Application(models.Model):
             self.application_number = (
                 f"LFA-{timezone.localdate().year}-{uuid.uuid4().hex[:8].upper()}"
             )
-        if self.date_of_birth:
-            self.age = self.age_for_date(self.date_of_birth)
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -2,7 +2,6 @@ from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
-from django.utils import timezone
 
 from .models import Application, ApplicationPhoto
 
@@ -37,13 +36,19 @@ class ApplicationForm(forms.ModelForm):
         choices=Application.Gender.choices,
         required=True,
     )
-    date_of_birth = forms.DateField(
-        label="Date of birth",
+    age = forms.IntegerField(
+        label="Age",
+        min_value=5,
+        max_value=28,
         required=True,
-        widget=forms.DateInput(
-            attrs={"type": "date", "autocomplete": "bday"}
-        ),
+        widget=forms.NumberInput(attrs={"min": 5, "max": 28, "step": 1}),
+        error_messages={
+            "min_value": "Applicants must be between 5 and 28 years old.",
+            "max_value": "Applicants must be between 5 and 28 years old.",
+        },
     )
+    city = forms.CharField(label="City", max_length=120, required=True)
+    town = forms.CharField(label="Town", max_length=120, required=True)
     whatsapp_number = forms.CharField(
         label="WhatsApp number",
         max_length=32,
@@ -105,10 +110,11 @@ class ApplicationForm(forms.ModelForm):
             "email",
             "phone",
             "whatsapp_number",
-            "date_of_birth",
+            "age",
             "age_category",
             "gender",
-            "location",
+            "city",
+            "town",
             "current_occupation",
             "preferred_days",
             "available_full_five_weeks",
@@ -126,12 +132,10 @@ class ApplicationForm(forms.ModelForm):
             "age_category": "Age category",
             "gender": "Gender",
             "social_handle": "Instagram handle",
-            "location": "City, then town",
             "about": "Anything else you'd like us to know?",
         }
         help_texts = {
-            "age_category": "Choose the category that matches your calculated age.",
-            "location": "Enter your city, followed by your town.",
+            "age_category": "Choose the category that matches your age.",
         }
         widgets = {
             "about": forms.Textarea(attrs={"rows": 4}),
@@ -168,25 +172,12 @@ class ApplicationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        date_of_birth = cleaned_data.get("date_of_birth")
-        age = None
-        if date_of_birth:
-            today = timezone.localdate()
-            if date_of_birth > today:
-                self.add_error("date_of_birth", "Date of birth cannot be in the future.")
-            else:
-                age = Application.age_for_date(date_of_birth, today)
-                if age > 120:
-                    self.add_error(
-                        "date_of_birth",
-                        "Please enter a valid date of birth.",
-                    )
-        cleaned_data["age"] = age
+        age = cleaned_data.get("age")
         age_category = cleaned_data.get("age_category")
         expected_category = self.age_category_for_age(age)
         if age is not None and expected_category is None:
             self.add_error(
-                "date_of_birth",
+                "age",
                 "Applicants must be between 5 and 28 years old.",
             )
         elif age_category and expected_category != age_category:

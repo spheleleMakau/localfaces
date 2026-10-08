@@ -4,8 +4,6 @@ if (form) {
   const photoInputs = [...form.querySelectorAll('input[type="file"]')];
   const maximumBytes = Number(form.dataset.maxPhotoBytes);
   const maximumPhotoMegabytes = form.dataset.maxPhotoMb;
-  const dobInput = form.querySelector('input[name="date_of_birth"]');
-  const ageOutput = document.querySelector("#calculated-age");
   const ageCategoryInput = form.querySelector('select[name="age_category"]');
   const kidsApplicationNotice = document.querySelector(
     "#kids-application-notice",
@@ -16,24 +14,6 @@ if (form) {
   const modellingExperienceDetails = form.querySelector(
     "[data-modelling-experience-details]",
   );
-
-  const updateAge = () => {
-    if (!dobInput?.value || !ageOutput) return;
-    const [year, month, day] = dobInput.value.split("-").map(Number);
-    const today = new Date();
-    let age = today.getFullYear() - year;
-    if (
-      today.getMonth() + 1 < month ||
-      (today.getMonth() + 1 === month && today.getDate() < day)
-    ) {
-      age -= 1;
-    }
-    ageOutput.textContent =
-      age >= 0 ? `${age} ${age === 1 ? "year" : "years"}` : "Enter a valid date";
-  };
-
-  dobInput?.addEventListener("input", updateAge);
-  updateAge();
 
   const updateKidsApplicationNotice = () => {
     if (ageCategoryInput && kidsApplicationNotice) {
