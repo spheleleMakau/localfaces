@@ -28,6 +28,11 @@ ALLOWED_HOSTS = [
 render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 if render_hostname:
     ALLOWED_HOSTS.append(render_hostname)
+ALLOWED_HOSTS.extend(
+    host
+    for host in ("localfaces.co.za", "www.localfaces.co.za")
+    if host not in ALLOWED_HOSTS
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -161,6 +166,14 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 if render_hostname:
     CSRF_TRUSTED_ORIGINS.append(f"https://{render_hostname}")
+CSRF_TRUSTED_ORIGINS.extend(
+    origin
+    for origin in (
+        "https://localfaces.co.za",
+        "https://www.localfaces.co.za",
+    )
+    if origin not in CSRF_TRUSTED_ORIGINS
+)
 
 LOCAL_FACES_WHATSAPP_NUMBER = os.environ.get(
     "LOCAL_FACES_WHATSAPP_NUMBER", "27671012841"
