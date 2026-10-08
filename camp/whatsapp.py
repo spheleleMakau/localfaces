@@ -13,7 +13,7 @@ def _whatsapp_number():
     if not re.fullmatch(r"[1-9]\d{7,14}", number):
         raise ImproperlyConfigured(
             "LOCAL_FACES_WHATSAPP_NUMBER must use international digits only, "
-            "for example 27671012841."
+            "for example 27798291238."
         )
     return number
 

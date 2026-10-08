@@ -212,7 +212,7 @@ class ApplicationSubmissionTests(TestCase):
         whatsapp_redirect = urlsplit(response["Location"])
         self.assertEqual(whatsapp_redirect.scheme, "https")
         self.assertEqual(whatsapp_redirect.netloc, "wa.me")
-        self.assertEqual(whatsapp_redirect.path, "/27671012841")
+        self.assertEqual(whatsapp_redirect.path, "/27798291238")
         message = parse_qs(whatsapp_redirect.query)["text"][0]
         self.assertIn(application.application_number, message)
         self.assertIn("Applicant: Jordan Example", message)
@@ -328,7 +328,7 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(urlsplit(duplicate_response["Location"]).netloc, "wa.me")
         self.assertEqual(
             urlsplit(duplicate_response["Location"]).path,
-            "/27671012841",
+            "/27798291238",
         )
         self.assertEqual(Application.objects.count(), 1)
         self.assertEqual(ApplicationPhoto.objects.count(), 2)
@@ -490,14 +490,14 @@ class WhatsAppHandoffTests(TestCase):
         )
         request = RequestFactory().get("/", HTTP_HOST="agency.example", secure=True)
         with override_settings(
-            LOCAL_FACES_WHATSAPP_NUMBER="27671012841",
+            LOCAL_FACES_WHATSAPP_NUMBER="27798291238",
             ALLOWED_HOSTS=["agency.example"],
         ):
             url = build_application_whatsapp_url(application, request)
         parts = urlsplit(url)
         message = parse_qs(parts.query)["text"][0]
         self.assertEqual(parts.netloc, "wa.me")
-        self.assertEqual(parts.path, "/27671012841")
+        self.assertEqual(parts.path, "/27798291238")
         self.assertIn("https://agency.example/application/", message)
         self.assertIn("/photos/", message)
         self.assertIn("Morgan Applicant", message)

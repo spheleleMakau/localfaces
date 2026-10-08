@@ -26,7 +26,7 @@ The default database is local SQLite. For PostgreSQL, set `DJANGO_DB_ENGINE=djan
 
 No WhatsApp API or messaging service is used. After Django successfully saves an application, the confirmation page offers a **Send application via WhatsApp** button. It opens a standard `wa.me` URL with a concise message already composed; the applicant reviews it and taps **Send** inside WhatsApp. The application remains saved if they do not send the message.
 
-Set `LOCAL_FACES_WHATSAPP_NUMBER` to the agency's international number using digits only (no plus sign, spaces or punctuation). The default is `27671012841`. The message contains the application reference, key applicant details, a private photo-page link and a private full-application link. It omits the applicant's long personal statement.
+Set `LOCAL_FACES_WHATSAPP_NUMBER` to the agency's international number using digits only (no plus sign, spaces or punctuation). The default is `27798291238` (South African number 079 829 1238). The message contains the application reference, key applicant details, a private photo-page link and a private full-application link. It omits the applicant's long personal statement.
 
 Each application has a random UUID-based private link token. Anyone with the application or photo URL can view that applicant's submitted information, so treat the WhatsApp message as private. These bearer links do not expose sequential application IDs and do not expire. Configure the site's public HTTPS hostname correctly so generated links point to the deployed site.
 
