@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "camp/base.html" %}
 {% block title %}Applications — Local Faces Agency{% endblock %}
-{% block content %}
+{% block camp_content %}
 <section class="dashboard-page">
   <div class="dashboard-heading">
     <div><div class="section-label"><span>PRIVATE AREA</span> AGENCY DASHBOARD</div><h1>Applications<span>.</span></h1><p>Review applicant details, photographs and application status.</p></div>
@@ -20,7 +20,7 @@
           {% for application in applications %}
             <tr>
               <td><strong>{{ application.full_name }}</strong><small>{{ application.email }}</small></td>
-              <td>{{ application.application_number }}</td>
+              <td>{{ application.application_number }}<small>{{ application.get_kind_display }}</small></td>
               <td>{{ application.submitted_at|date:"j M Y, H:i" }}</td>
               <td><span class="status-pill status-{{ application.status }}">{{ application.get_status_display }}</span></td>
               <td class="table-actions">

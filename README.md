@@ -1,78 +1,77 @@
-# Local Faces Agency — 6-Week Summer Camp
+# Local Faces
 
-A Django website and application system for the Local Faces Agency 6-Week Summer Camp. The public application form at `/` (also available at `/apply/`) saves applicant details and private photographs, then presents a confirmation page with an applicant-triggered WhatsApp handoff. A staff dashboard and Django Admin support application review.
+The initial Local Faces Talent Agency & Entertainment website, built with Django and a custom editorial-style responsive homepage.
+
+## Current stage
+
+The site includes a responsive homepage, model applications, training information and a training cart. Merchandise details remain pending.
+
+The model application collects details and photographs and uses a WhatsApp handoff. Other talent categories are not yet accepting applications. The old training application has been replaced by training details and the shop; existing application records remain available to staff. The 2027 training shop offers terms 1–4, a R3,000 group course and one-on-one training with Semu at R1,500 per hour, both in Durban, Johannesburg or Cape Town. The R500 non-refundable group-course registration fee is paid by EFT or bank deposit; the remaining R2,500 course fee is arranged separately with Local Faces. Actual dates and arrangements are confirmed separately.
+
+People interested in starting an academy can contact Local Faces to enquire about their proposed city, availability and operating terms.
+
+Each group-course and one-on-one booking requires an applicant form, sizes and two photographs before it can be added to the cart. The one-on-one form follows the talent-pool application, while the group form includes course availability questions and a choice to pay the R2,500 balance once or in two monthly payments of R1,250. The choice is saved with the application email record and included in the staff notification; staff can review it in Django admin under application emails. The R500 registration fee remains the only group-course amount due in the cart, and staff arrange and track the balance separately. Applications are stored when submitted, even if the cart is abandoned or the item is removed; staff can review them in Django admin. Existing training cart items without an application must be removed and added again.
+
+On the training details pages, customers can expand a city to see fees and follow its purchase link to the training selection form with that city preselected. They can still change their city and select their training type and term before completing the applicant form.
+
+## Application email notifications
+
+New model and training applications are emailed to info@localfaces.com, including submitted details and training selection where applicable. Photographs are not attached: the email links to the staff-only Django admin application page, where an authorized staff member can review them. Applications are saved even when email delivery fails; the applicant is warned and staff can filter Application emails by pending or failed status, then select the related applications and use "Retry pending or failed application emails" in Django admin. A process interruption can leave a notification pending; check both pending and failed regularly. Acceptance by Resend does not guarantee final inbox delivery. A retry after an interrupted send may result in a duplicate email.
+
+Application notifications use Resend's HTTPS API. Verify the `localfaces.co.za` sender domain in Resend by adding its required DNS records, create a sending API key, and set `RESEND_API_KEY` privately in the Render web service's environment. `DEFAULT_FROM_EMAIL` defaults to `info@localfaces.co.za`; change it only to an address on a verified Resend domain. The sender domain may differ from the recipient, info@localfaces.com. Never put API keys in source control or chat. Deploy and submit a test application, then confirm receipt at info@localfaces.com and check Resend's delivery logs. Without a configured API key or verified sender, email cannot be delivered; the application remains saved and staff must retry failed notifications manually. Resend's idempotency key reduces duplicate sends on retries within its 24-hour window.
+
+## EFT payment
+
+The cart is session-based and displays EFT or bank-deposit instructions directly; no new order is created or persisted. Customers use the applicant's name as the payment reference and email proof of payment to info@localfaces.co.za with the applicant's name. Staff must reconcile the deposit and booking details manually; an application or proof of payment alone does not confirm a deposit. Academy cart selections are not otherwise stored.
+
+The group-course balance and any outstanding academy instalments from earlier arrangements must be collected and tracked separately. Existing orders retain their original amounts. Pending legacy PayFast orders direct customers to contact Local Faces before paying again. The existing PayFast notification endpoint and its `PAYFAST_MERCHANT_ID`, `PAYFAST_MERCHANT_KEY`, `PAYFAST_PASSPHRASE`, `PAYFAST_SITE_URL`, and `PAYFAST_SANDBOX` settings remain temporarily for verifying in-progress legacy payments only. Keep the existing deployment settings until those payments are reconciled.
 
 ## Run locally
 
-Python 3.11+ is recommended.
+Requires Python 3.12 or newer.
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-Copy-Item .env.example .env
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
+1. Create and activate a virtual environment.
+2. Install dependencies:
 
-**Local start command:** `python manage.py runserver`
+   ```powershell
+   python -m pip install -r requirements.txt
+   ```
 
-Open `http://127.0.0.1:8000/` for the application page. The confirmation appears only after submission. The private staff dashboard is at `/agency/applications/`; Django Admin is at `/django-admin/`. Only staff accounts can access either management area.
+3. Apply migrations and start the development server:
 
-The default database is local SQLite. For PostgreSQL, set `DJANGO_DB_ENGINE=django.db.backends.postgresql` and supply `DJANGO_DB_NAME`, `DJANGO_DB_USER`, `DJANGO_DB_PASSWORD`, `DJANGO_DB_HOST` and `DJANGO_DB_PORT`.
+   ```powershell
+   python manage.py migrate
+   python manage.py runserver
+   ```
 
-## Applicant-triggered WhatsApp handoff
+4. Open `http://127.0.0.1:8000/`.
 
-No WhatsApp API or messaging service is used. After Django successfully saves an application, the confirmation page offers a **Send application via WhatsApp** button. It opens a standard `wa.me` URL with a concise message already composed; the applicant reviews it and taps **Send** inside WhatsApp. The application remains saved if they do not send the message.
-
-Set `LOCAL_FACES_WHATSAPP_NUMBER` to the agency's international number using digits only (no plus sign, spaces or punctuation). The default is `27681946795` (South African number 068 194 6795). The message contains the application reference, key applicant details, a private photo-page link and a private full-application link. It omits the applicant's long personal statement.
-
-Each application has a random UUID-based private link token. Anyone with the application or photo URL can view that applicant's submitted information, so treat the WhatsApp message as private. These bearer links do not expose sequential application IDs and do not expire. Configure the site's public HTTPS hostname correctly so generated links point to the deployed site.
-
-## Applicant photographs and privacy
-
-Uploaded images are validated as images and stored outside public static files in `private_uploads/`. The form requires exactly two photographs: Picture 1 is full length and Picture 2 is a profile photo/selfie. Only JPG/JPEG and PNG are accepted. `MAX_APPLICATION_PHOTO_BYTES` sets the per-photo byte limit (default 8 MiB). Public media serving is deliberately not enabled. The UUID-token photo and application pages are the only non-staff access path. Back up and restrict access to the database and private upload directory together.
-
-Applicants enter their age (5–28) and select Kids (5–12), Teens (13–18) or Seniors (19–28); the selected category must match the entered age. Date of birth is no longer collected; previously stored dates remain only on historical records and are not shown in staff or shared application views. Selecting Kids displays that applications for this category will open in 2027. Applicants also provide their gender (Male or Female). The form collects contact/WhatsApp numbers, separate city and town fields, current occupation, one available day (Friday, Saturday or Sunday), six-week availability, a required Yes/No modelling-experience answer with optional details when applicable, Instagram and TikTok handles, and an optional personal statement. For applicants under 18, parent/guardian contact details and agreement are required. Confirm the programme's actual eligibility and consent requirements before accepting applications.
-
-The submission includes a unique idempotency key, so a repeated POST with the same form does not create another application. The submit button is disabled while the first submission is processing.
-
-## Editable programme details and imagery
-
-The supplied `img/1.jpg` and `img/2.jpg` campaign posters are displayed on the application page. Eligibility, dates, venue and fee details should be confirmed before launch. Edit `templates/camp/apply.html` for application-page content.
+The local default is SQLite. For local work, Django uses a development-only fallback secret key; set `SECRET_KEY` to a private value for any shared or deployed environment.
 
 ## Deploy to Render
 
-The included `render.yaml` Blueprint configures the Django web service, PostgreSQL, production static files, HTTPS settings, a health check and a persistent disk for private application photos. The web service and database use paid Render plans so applicant data and uploaded images persist. Review current Render pricing and region availability before creating the Blueprint.
+### Blueprint (recommended)
 
-1. Push this project to a GitHub or GitLab repository.
-2. In the Render Dashboard, choose **New → Blueprint Instance**, select the repository and review the services and costs in `render.yaml`.
-3. Apply the Blueprint. Render runs the build command, which installs dependencies, applies migrations and collects static files. Render then starts the app with Gunicorn.
-4. Create an agency administrator from the Render Shell with `python manage.py createsuperuser`.
-5. Set `LOCAL_FACES_WHATSAPP_NUMBER` to the agency number in international digits-only format.
-6. Visit the `onrender.com` URL to check the site and `/django-admin/` to manage applications. The app explicitly allows `localfaces.co.za` and `www.localfaces.co.za`; add any other custom domains to `DJANGO_ALLOWED_HOSTS` and their HTTPS origins to `DJANGO_CSRF_TRUSTED_ORIGINS` in the service environment.
+Push the repository to GitHub, then in Render choose **New → Blueprint** and select it. `render.yaml` provisions the web service and a PostgreSQL database, generates `SECRET_KEY`, wires `DATABASE_URL`, runs `build.sh` (install, `collectstatic`, `migrate`) and starts Gunicorn. `RENDER_EXTERNAL_HOSTNAME` is added to the allowed hosts and CSRF trusted origins automatically; add custom domains through `ALLOWED_HOSTS`. After the first deploy, create an admin user from the Render shell with `python manage.py createsuperuser`.
 
-**Render build command:** `bash build.sh`
+Free Render plans have an ephemeral disk and a short-lived database; upgrade before real use.
 
-**Render start command:** `gunicorn localfaces.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+### Manual setup
 
-For a local production-style build, run `python manage.py collectstatic --noinput`. `build.sh` is a Bash script for Render/Linux, not Windows PowerShell.
+Alternatively, create a Web Service and a PostgreSQL database by hand and set the following environment variables in the Render dashboard (the app refuses to start with `DEBUG=False` and no `SECRET_KEY`):
 
-Render automatically configures `DATABASE_URL` for PostgreSQL and `DJANGO_MEDIA_ROOT` for the persistent upload disk. Do not remove that disk or serve applicant uploads from the public static directory. Back up the database and upload disk together.
+- `SECRET_KEY`: a long, unique secret value.
+- `DEBUG`: `False`.
+- `ALLOWED_HOSTS`: the Render hostname (and any custom domains), comma-separated.
+- `DATABASE_URL`: the Render PostgreSQL connection string.
+- `SECURE_SSL_REDIRECT`: `True` (the production default).
 
-## Production checklist
+Use the following build command:
 
-- Set `DJANGO_SECRET_KEY` to a unique secret and `DJANGO_DEBUG=False`.
-- Set `DJANGO_ALLOWED_HOSTS` and configure HTTPS / trusted proxy settings for the hosting provider.
-- Use managed PostgreSQL and private, access-controlled media storage with backups.
-- Configure `LOCAL_FACES_WHATSAPP_NUMBER` and test the `wa.me` handoff against the live hostname. No API credentials are needed.
-- Verify that `DATABASE_URL` uses PostgreSQL and `DJANGO_MEDIA_ROOT` points to persistent private storage.
-- Run `python manage.py migrate` and `python manage.py collectstatic --noinput` as part of deployment.
-- Establish the agency's privacy notice, consent wording, data-retention schedule and deletion process before collecting real applicants' information.
-
-## Tests
-
-```powershell
-python manage.py test camp
+```text
+pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
 ```
+
+Set the start command to `gunicorn localfaces.wsgi:application` (also defined in `Procfile`). Static files are served through WhiteNoise. Run migrations during deployment or as a Render pre-deploy command when available.
+
+Applicant photos require durable private storage in production. The Render blueprint configures a persistent disk; other deployments must configure their own durable private storage, access controls and retention rules. Do not serve private applicant files as public static content.

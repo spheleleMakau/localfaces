@@ -1,0 +1,45 @@
+{% extends "camp/base.html" %}
+{% load static %}
+{% block title %}Training application — Local Faces{% endblock %}
+{% block camp_content %}
+<section class="talent-application" aria-labelledby="training-application-title">
+  <div class="talent-application-inner">
+    <p class="eyebrow">{% if selection.training == "course" %}Group training{% else %}One-on-one training{% endif %} · 2027 · {{ selection.city }}</p>
+    <h1 id="training-application-title">Training applicant details</h1>
+    <div class="privacy-note"><strong>Bank:</strong> Nedbank<br><strong>Account name:</strong> localfaces Entertainment<br><strong>Account number:</strong> 1330686349<br><strong>Reference:</strong> Applicant's name<br>Email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a></div>
+    {% if selection.training == "course" %}{% else %}<p>Complete one form per one-on-one booking before adding it to your cart. Training with Semu costs R1,500 per hour in your selected city.</p>{% endif %}
+    <form class="application-form" method="post" enctype="multipart/form-data" data-application-form>
+      {% csrf_token %}
+      {{ form.submission_key }}
+      {% include "agency/_application_errors.html" %}
+      <div class="form-step-heading"><span>TRAINING APPLICATION</span><h2>Your details</h2><p>Enter the details of the person attending training.</p></div>
+      <div class="form-fields-grid">
+        {% for field in form %}
+          {% if not field.is_hidden and field.name != "headshot" and field.name != "full_length_photo" and field.name != "privacy_consent" and field.name != "photo_consent" and field.name != "guardian_consent" %}
+            {% if field.name == "preferred_days" %}
+              <fieldset id="error-{{ field.name }}" class="form-field form-field-wide availability-field {% if field.errors %}has-error{% endif %}">
+                <legend>{{ field.label }}<span class="required-mark">*</span></legend>
+                {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                {{ field }}
+                {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+              </fieldset>
+            {% else %}
+            <div id="error-{{ field.name }}" class="form-field {% if field.name == 'about' or field.name == 'previous_experience' %}form-field-wide{% endif %} {% if field.errors %}has-error{% endif %}" {% if field.name == "previous_experience" %}data-modelling-experience-details{% endif %} {% if field.name == "dress_size" or field.name == "skirt_size" %}data-female-size{% endif %}>
+              <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required or field.name == 'dress_size' or field.name == 'skirt_size' %}<span class="required-mark">*</span>{% endif %}</label>
+              {{ field }}
+              {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+              {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% include "agency/_photo_uploads.html" %}
+      <div class="privacy-note"><strong>Privacy:</strong> Your details are emailed to Local Faces Agency for application review and follow-up. Your photographs are stored for staff review and are not attached to the email or published by submitting this form.</div>
+      <div class="form-controls form-controls-submit"><span class="required-hint"><span class="required-mark">*</span> Required fields</span><button class="button button-champagne submit-application" type="submit">Add training to cart <span aria-hidden="true">→</span></button></div>
+    </form>
+    <a class="text-back" href="{% url 'training_shop' %}">← Change training selection</a>
+  </div>
+</section>
+{% endblock %}
+{% block extra_scripts %}<script src="{% static 'camp/js/application.js' %}?v=2" defer></script>{% endblock %}

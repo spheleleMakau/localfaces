@@ -1,8 +1,12 @@
-from django.contrib import admin
+import csv
+
+from django.contrib import admin, messages
+from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.html import format_html
 
-from .models import Application, ApplicationPhoto
+from .models import Application, ApplicationEmail, ApplicationPhoto
+from .notifications import send_application_email
 from .sharing import application_share_token
 
 
@@ -36,15 +40,17 @@ class ApplicationPhotoInline(admin.TabularInline):
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = [
         "application_number",
+        "kind",
         "full_name",
         "email",
         "phone",
         "submitted_at",
         "status",
     ]
-    list_filter = ["status", "submitted_at"]
+    list_filter = ["kind", "status", "submitted_at"]
     search_fields = [
         "application_number",
+        "kind",
         "full_name",
         "email",
         "phone",
@@ -75,6 +81,11 @@ class ApplicationAdmin(admin.ModelAdmin):
                     "age",
                     "age_category",
                     "gender",
+                    "shoe_size",
+                    "pants_size",
+                    "dress_size",
+                    "skirt_size",
+                    "top_size",
                     "city",
                     "town",
                     "current_occupation",
@@ -106,6 +117,43 @@ class ApplicationAdmin(admin.ModelAdmin):
         ),
     ]
     inlines = [ApplicationPhotoInline]
+    actions = ["export_csv", "retry_application_emails"]
+
+    @admin.action(description="Retry pending or failed application emails", permissions=["change"])
+    def retry_application_emails(self, request, queryset):
+        sent = 0
+        failed = 0
+        for notification in ApplicationEmail.objects.select_related("application").filter(
+            application__in=queryset, status__in=[ApplicationEmail.Status.PENDING, ApplicationEmail.Status.FAILED],
+        ):
+            if send_application_email(notification, request):
+                sent += 1
+            else:
+                failed += 1
+        self.message_user(
+            request,
+            f"{sent} application email(s) sent; {failed} failed. Applications without a pending or failed notification were skipped.",
+            messages.WARNING if failed else messages.SUCCESS,
+        )
+
+    @admin.action(description="Export selected applications to CSV")
+    def export_csv(self, request, queryset):
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = 'attachment; filename="applications.csv"'
+        response["Cache-Control"] = "private, no-store"
+        writer = csv.writer(response)
+        field_names = [f.name for f in Application._meta.concrete_fields]
+        writer.writerow(field_names)
+        for application in queryset:
+            writer.writerow(
+                [
+                    "'" + str(value)
+                    if isinstance(value, str) and value[:1] in "=+-@"
+                    else value
+                    for value in (getattr(application, name) for name in field_names)
+                ]
+            )
+        return response
 
     @admin.display(description="Secure full application")
     def secure_application_link(self, obj):
@@ -126,3 +174,17 @@ class ApplicationAdmin(admin.ModelAdmin):
             args=[application_share_token(obj)],
         )
         return format_html('<a href="{0}" target="_blank">{0}</a>', url)
+
+
+@admin.register(ApplicationEmail)
+class ApplicationEmailAdmin(admin.ModelAdmin):
+    list_display = ("application", "status", "sent_at")
+    list_filter = ("status",)
+    search_fields = ("application__application_number", "application__full_name")
+    readonly_fields = ("application", "training_selection", "status", "sent_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

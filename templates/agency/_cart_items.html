@@ -1,0 +1,16 @@
+{% for item in items %}
+  <div class="cart-item">
+    <div>
+      {% if item.training == "academy" %}
+        <strong>Local Faces academy opportunity</strong><br>Proposed city: {{ item.city }}<br>R5,000 total: R1,666.67 payable now; R1,666.67 in month two and R1,666.66 in month three, arranged separately.
+      {% elif item.training == "course" %}
+        <strong>6-week group course registration</strong><br>2027 · {{ item.city }}{% if item.application_number %}<br>Application: {{ item.application_number }}{% endif %}<br>R500 non-refundable registration payable now.         The remaining R{{ item.balance_due|floatformat:2 }} course fee is arranged separately with Local Faces.
+              {% else %}
+        <strong>One-on-one training</strong><br>2027 · {{ item.city }}{% if item.application_number %}<br>Application: {{ item.application_number }}{% endif %}<br>{{ item.hours }} hour{{ item.hours|pluralize }} at R1,500 per hour
+      {% endif %}
+    </div>
+    {% if item.whatsapp_url %}<p><a class="button button-champagne" href="{{ item.whatsapp_url }}" target="_blank" rel="noopener">Send application on WhatsApp</a></p>{% endif %}
+    <div><strong>R{{ item.subtotal|floatformat:2 }}</strong>{% if allow_remove %}<form method="post" action="{% url 'training_cart_remove' forloop.counter0 %}">{% csrf_token %}<button type="submit">Remove</button></form>{% endif %}</div>
+  </div>
+{% empty %}<p>Your cart is empty.</p>{% endfor %}
+{% if items %}<p class="cart-total">Total payable now: R{{ total|floatformat:2 }}</p>{% endif %}

@@ -1,0 +1,19 @@
+{% extends "camp/base.html" %}
+{% block title %}Your cart — Local Faces{% endblock %}
+{% block camp_content %}
+<section class="shop-page">
+  <p class="eyebrow">Your selections</p><h1>Your cart</h1>
+  {% include "agency/_cart_items.html" with allow_remove=True %}
+  <a class="shop-link" href="{% url 'training_shop' %}">Add more training</a>
+  {% if needs_application %}
+    <p role="alert">A training item in your cart needs an application. Remove it and add it again to complete the form before paying.</p>
+  {% elif items %}
+    <h2>Pay by EFT</h2>
+    <p><strong>Bank:</strong> Nedbank<br>
+      <strong>Account name:</strong> localfaces Entertainment<br>
+      <strong>Account number:</strong> 1330686349<br>
+      <strong>Reference:</strong> Applicant's name</p>
+    <p>Email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,28 @@
+﻿{% extends "base.html" %}
+{% load static %}
+{% block title %}Semu's portfolio — Local Faces{% endblock %}
+{% block content %}
+<section class="portfolio-page" aria-labelledby="portfolio-title">
+  <div class="portfolio-intro">
+    <p class="eyebrow">The founder's portfolio</p>
+    <h1 id="portfolio-title">Experience in the frame.</h1>
+    <p>Explore a selection of Semu's modelling work, from editorial features to commercial imagery.</p>
+  </div>
+  <div class="portfolio-grid founder-portfolio-grid">
+    <figure><img src="{% static 'agency/img/1000834847.jpg' %}" alt="Nivea body lotion advertisement" loading="lazy"><figcaption>Commercial / Nivea</figcaption></figure>
+    <figure><img src="{% static 'agency/img/1000834841.jpg' %}" alt="Beauty portrait of Semu" loading="lazy"><figcaption>Beauty / Portrait</figcaption></figure>
+    <figure><img src="{% static 'agency/img/1000834842.jpg' %}" alt="Clicks Beauty Fair television commercial" loading="lazy"><figcaption>Commercial / Clicks</figcaption></figure>
+    <figure><img src="{% static 'agency/img/1000834843.jpg' %}" alt="Avon Solutions advertisement" loading="lazy"><figcaption>Commercial / Avon</figcaption></figure>
+    <figure><img src="{% static 'agency/img/1000834844.jpg' %}" alt="Your Family magazine cover" loading="lazy"><figcaption>Editorial / Your Family</figcaption></figure>
+    <figure><img src="{% static 'agency/img/1000834845.jpg' %}" alt="Nubian Bride magazine cover, issue 14" loading="lazy"><figcaption>Editorial / Nubian Bride</figcaption></figure>
+    <figure><img src="{% static 'agency/img/1000834846.jpg' %}" alt="Nubian Bride magazine cover, issue 16" loading="lazy"><figcaption>Editorial / Nubian Bride</figcaption></figure>
+    <figure><img src="{% static 'agency/img/brand.jpeg' %}" alt="Nubian Bride magazine cover" loading="lazy"><figcaption>Editorial / Nubian Bride</figcaption></figure>
+    <figure><img src="{% static 'agency/img/brand1.jpeg' %}" alt="Fashion magazine editorial featuring two models" loading="lazy"><figcaption>Fashion / Editorial</figcaption></figure>
+    <figure><img src="{% static 'agency/img/brand2.jpeg' %}" alt="Nivea body lotion advertisement" loading="lazy"><figcaption>Commercial / Nivea</figcaption></figure>
+    <figure><img src="{% static 'agency/img/brand4.jpeg' %}" alt="Vaseline skincare campaign image" loading="lazy"><figcaption>Commercial / Vaseline</figcaption></figure>
+    <figure><img src="{% static 'agency/img/brand5.jpeg' %}" alt="Jewellery catalogue spread" loading="lazy"><figcaption>Commercial / Jewellery</figcaption></figure>
+    <figure><img src="{% static 'agency/img/brand6.jpeg' %}" alt="Hyundai Santa Fe advertisement" loading="lazy"><figcaption>Commercial / Hyundai</figcaption></figure>
+  </div>
+  <div class="portfolio-cta"><p>Learn more about the person behind Local Faces.</p><a class="button button-champagne" href="{% url 'home' %}#about">Meet the founder <span aria-hidden="true">→</span></a></div>
+</section>
+{% endblock %}

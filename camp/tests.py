@@ -1,4 +1,5 @@
 from io import BytesIO
+import json
 import tempfile
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
@@ -7,12 +8,15 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core import mail
+from django.core.mail import EmailMessage
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
 from .forms import ApplicationForm
-from .models import Application, ApplicationPhoto
+from .email_backend import ResendEmailBackend
+from .models import Application, ApplicationEmail, ApplicationPhoto
 from .sharing import application_share_token
 from .whatsapp import build_application_whatsapp_url
 
@@ -23,24 +27,56 @@ def make_png():
     return output.getvalue()
 
 
+@override_settings(RESEND_API_KEY="test-key")
+class ResendEmailBackendTests(TestCase):
+    @patch("camp.email_backend.urlopen")
+    def test_sends_application_to_resend_with_idempotency_key(self, urlopen):
+        urlopen.return_value.__enter__.return_value.read.return_value = b'{"id":"email-id"}'
+        message = EmailMessage(
+            "Application", "Application details", "info@localfaces.co.za",
+            ["info@localfaces.com"], headers={"Idempotency-Key": "application/LFA-test"},
+        )
+        self.assertEqual(ResendEmailBackend().send_messages([message]), 1)
+        request = urlopen.call_args.args[0]
+        self.assertEqual(request.full_url, "https://api.resend.com/emails")
+        self.assertEqual(request.get_header("Authorization"), "Bearer test-key")
+        self.assertEqual(request.get_header("Idempotency-key"), "application/LFA-test")
+        self.assertEqual(json.loads(request.data), {
+            "from": "info@localfaces.co.za", "to": ["info@localfaces.com"],
+            "subject": "Application", "text": "Application details",
+        })
+
+    @patch("camp.email_backend.urlopen")
+    def test_response_without_email_id_is_not_success(self, urlopen):
+        urlopen.return_value.__enter__.return_value.read.return_value = b'{}'
+        with self.assertRaises(ValueError):
+            ResendEmailBackend().send_messages([
+                EmailMessage("Application", "Details", "info@localfaces.co.za", ["info@localfaces.co.za"])
+            ])
+
+
 class CampPagesTests(TestCase):
     def test_health_check_returns_ok(self):
         response = self.client.get(reverse("health_check"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"ok")
 
-    def test_root_and_apply_path_render_the_single_application_page(self):
+    def test_training_urls_show_details_without_accepting_applications(self):
         for url in (reverse("camp:apply"), reverse("camp:apply_form")):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
-                self.assertContains(response, 'data-application-form')
-                self.assertContains(response, 'name="submission_key"')
+                self.assertContains(response, "Training details")
+                self.assertContains(response, reverse("training_shop"))
+                self.assertNotContains(response, "data-application-form")
+                self.assertNotContains(response, 'name="submission_key"')
+                self.assertEqual(self.client.post(url, {}).status_code, 405)
                 self.assertContains(
                     response,
-                    '<img class="brand-logo" src="/static/logo.',
+                    "agency/img/logo-light.png",
                     count=2,
                 )
+                self.assertNotContains(response, "camp/img/logo")
 
     def test_other_public_pages_have_been_removed(self):
         self.assertEqual(self.client.get("/faq/").status_code, 404)
@@ -64,8 +100,8 @@ class CampPagesTests(TestCase):
                     expected_category,
                 )
 
-    def test_application_form_shows_six_week_details_and_two_required_photo_slots(self):
-        response = self.client.get(reverse("camp:apply"))
+    def test_model_form_retains_application_fields_and_two_required_photo_slots(self):
+        response = self.client.get(reverse("join"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'name="age"')
         self.assertNotContains(response, 'name="date_of_birth"')
@@ -73,39 +109,22 @@ class CampPagesTests(TestCase):
         self.assertNotContains(response, "Monday")
         self.assertNotContains(response, "Areas of interest")
         self.assertNotContains(response, "Select all areas you are interested in.")
-        self.assertContains(response, "Which day are you available?")
-        self.assertContains(response, 'name="preferred_days"')
-        self.assertContains(response, 'value="Friday"')
-        self.assertContains(response, 'value="Saturday"')
-        self.assertContains(response, 'value="Sunday"')
+        self.assertNotContains(response, 'name="preferred_days"')
+        self.assertNotContains(response, 'name="available_full_five_weeks"')
         self.assertContains(response, 'type="radio"')
         self.assertNotContains(response, 'name="areas_of_interest"')
         self.assertNotContains(response, "Preferred time")
         self.assertNotContains(response, 'name="preferred_time"')
-        self.assertContains(response, "6-WEEK SUMMER CAMP")
-        self.assertContains(response, "Age category")
-        self.assertContains(response, "Kids (5–12)")
-        self.assertContains(response, "Teens (13–18)")
-        self.assertContains(response, "Seniors (19–28)")
+        self.assertContains(response, "MODEL APPLICATION")
+        self.assertNotContains(response, 'name="age_category"')
         self.assertContains(response, "Gender")
         self.assertContains(response, "Male")
         self.assertContains(response, "Female")
-        self.assertContains(
-            response,
-            'id="kids-application-notice"',
-        )
         self.assertContains(response, 'name="gender"')
         self.assertTrue(response.context["form"]["gender"].field.required)
         self.assertTrue(response.context["form"]["age"].field.required)
         self.assertTrue(response.context["form"]["city"].field.required)
         self.assertTrue(response.context["form"]["town"].field.required)
-        self.assertContains(response, 'hidden>Disclaimer: Applications for the Kids category')
-        content = response.content.decode()
-        self.assertLess(
-            content.index('id="kids-application-notice"'),
-            content.index('class="form-heading"'),
-        )
-        self.assertContains(response, "Available for the full 6 weeks?")
         self.assertContains(response, "Do you have any modelling experience?")
         self.assertContains(response, "Instagram handle")
         self.assertContains(response, "TikTok handle")
@@ -113,6 +132,8 @@ class CampPagesTests(TestCase):
         self.assertContains(response, 'name="town"')
         self.assertContains(response, "Submit application")
         self.assertContains(response, 'name="headshot"')
+        self.assertContains(response, "JPG, JPEG or PNG")
+        self.assertNotContains(response, "No per-photo size limit")
         self.assertContains(response, 'name="full_length_photo"')
         self.assertNotContains(response, 'name="additional_photo_1"')
         self.assertNotContains(response, "OPTIONAL")
@@ -144,7 +165,7 @@ class CampPagesTests(TestCase):
         application = Application.objects.create(
             full_name="Jamie Applicant",
             email="jamie@example.com",
-            phone="+27123456789",
+            phone="0123456789",
             city="Pretoria",
             privacy_consent=True,
             photo_consent=True,
@@ -159,6 +180,11 @@ class CampPagesTests(TestCase):
         self.assertContains(response, str(application.share_token))
 
 
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    RESEND_API_KEY="test-key",
+    DEFAULT_FROM_EMAIL="sender@example.com",
+)
 class ApplicationSubmissionTests(TestCase):
     def setUp(self):
         self.media_directory = tempfile.TemporaryDirectory()
@@ -175,11 +201,16 @@ class ApplicationSubmissionTests(TestCase):
             "submission_key": str(uuid4()),
             "full_name": "Jordan Example",
             "email": "jordan@example.com",
-            "phone": "+27123456789",
-            "whatsapp_number": "+27671234567",
+            "phone": "0123456789",
+            "whatsapp_number": "0671234567",
             "age": "20",
             "age_category": "seniors",
             "gender": "female",
+            "shoe_size": "6",
+            "pants_size": "32",
+            "dress_size": "10",
+            "skirt_size": "10",
+            "top_size": "M",
             "city": "Cape Town",
             "town": "Sea Point",
             "current_occupation": "Student",
@@ -202,9 +233,74 @@ class ApplicationSubmissionTests(TestCase):
         data.update(overrides)
         return data
 
+    def test_model_application_saves_sizes_and_uses_whatsapp_flow(self):
+        response = self.client.post(reverse("join"), self.submission_data(
+            shoe_size="6", pants_size="32", dress_size="10", skirt_size="10", top_size="M",
+        ))
+        self.assertEqual(response.status_code, 302)
+        application = Application.objects.get()
+        self.assertEqual(application.kind, Application.Kind.MODEL)
+        self.assertEqual(application.dress_size, "10")
+        self.assertEqual(application.skirt_size, "10")
+        self.assertEqual(application.photos.count(), 2)
+        message = parse_qs(urlsplit(response["Location"]).query)["text"][0]
+        self.assertIn("MODEL APPLICATION", message)
+        self.assertIn("Shoe size: 6", message)
+        self.assertContains(self.client.get(reverse("camp:shared_application", args=[application.share_token])), "Dress size")
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.to, ["info@localfaces.com"])
+        self.assertIn("Full name: Jordan Example", email.body)
+        self.assertIn("About: I enjoy creative projects.", email.body)
+        self.assertIn("Shoe size: 6", email.body)
+        self.assertIn(reverse("admin:camp_application_change", args=[application.pk]), email.body)
+        self.assertNotIn(str(application.share_token), email.body)
+        self.assertEqual(email.attachments, [])
+        self.assertEqual(application.notification_email.status, ApplicationEmail.Status.SENT)
+        self.assertEqual(self.client.get(reverse("admin:camp_application_change", args=[application.pk])).status_code, 302)
+
+    @override_settings(RESEND_API_KEY="")
+    def test_email_failure_keeps_application_and_staff_can_retry(self):
+        response = self.client.post(reverse("join"), self.submission_data())
+        application = Application.objects.get()
+        self.assertRedirects(response, reverse("camp:success", args=[application.share_token]), fetch_redirect_response=False)
+        self.assertNotContains(self.client.get(response["Location"]), "Email delivery is temporarily unavailable")
+        self.assertEqual(application.photos.count(), 2)
+        self.assertEqual(application.notification_email.status, ApplicationEmail.Status.FAILED)
+        staff = get_user_model().objects.create_superuser("reviewer", "reviewer@example.com", "password")
+        self.client.force_login(staff)
+        with override_settings(RESEND_API_KEY="test-key"):
+            result = self.client.post(reverse("admin:camp_application_changelist"), {
+                "action": "retry_application_emails", "_selected_action": [application.pk],
+            })
+        self.assertEqual(result.status_code, 302)
+        application.notification_email.refresh_from_db()
+        self.assertEqual(application.notification_email.status, ApplicationEmail.Status.SENT)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_model_sizes_follow_gender_and_are_required(self):
+        response = self.client.post(reverse("join"), self.submission_data(
+            shoe_size="6", pants_size="32", dress_size="", skirt_size="", top_size="M",
+        ))
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context["form"], "dress_size", "This field is required.")
+        self.assertFormError(response.context["form"], "skirt_size", "This field is required.")
+        self.assertContains(response, 'href="#error-dress_size"')
+        self.assertContains(response, "Dress size: This field is required.")
+        self.assertContains(response, "For security, photographs are not retained")
+        response = self.client.post(reverse("join"), self.submission_data(
+            gender="male", shoe_size="9", pants_size="32", top_size="M",
+            dress_size="10", skirt_size="10",
+        ))
+        self.assertEqual(response.status_code, 302)
+        application = Application.objects.get()
+        self.assertEqual(application.dress_size, "")
+        self.assertEqual(application.skirt_size, "")
+        self.assertNotContains(self.client.get(reverse("camp:shared_application", args=[application.share_token])), "Dress size")
+
     def test_submission_saves_application_and_required_photos(self):
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(),
         )
         application = Application.objects.get()
@@ -217,19 +313,19 @@ class ApplicationSubmissionTests(TestCase):
         self.assertIn(application.application_number, message)
         self.assertIn("Applicant: Jordan Example", message)
         self.assertIn("jordan@example.com", message)
-        self.assertIn("PHOTOS: http://testserver/application/", message)
-        self.assertIn("FULL APPLICATION: http://testserver/application/", message)
+        self.assertIn("PHOTOS: http://testserver/training/application/", message)
+        self.assertIn("FULL APPLICATION: http://testserver/training/application/", message)
         self.assertTrue(application.application_number.startswith("LFA-2026-"))
         self.assertEqual(application.age, 20)
         self.assertIsNone(application.date_of_birth)
         self.assertEqual(application.city, "Cape Town")
         self.assertEqual(application.town, "Sea Point")
-        self.assertEqual(application.age_category, Application.AgeCategory.SENIORS)
+        self.assertEqual(application.age_category, "")
         self.assertEqual(application.gender, Application.Gender.FEMALE)
         self.assertNotIn("Date of Birth:", message)
-        self.assertEqual(application.preferred_days, ["Friday"])
+        self.assertEqual(application.preferred_days, [])
         self.assertEqual(application.areas_of_interest, [])
-        self.assertTrue(application.available_full_five_weeks)
+        self.assertIsNone(application.available_full_five_weeks)
         self.assertTrue(application.has_modelling_experience)
         self.assertEqual(application.tiktok_handle, "@jordanstudio")
         self.assertEqual(application.photos.count(), 2)
@@ -244,9 +340,28 @@ class ApplicationSubmissionTests(TestCase):
             all(Path(photo.image.path).is_file() for photo in application.photos.all())
         )
 
+    def test_submission_accepts_photo_larger_than_previous_limit(self):
+        oversized_photo = make_png() + b"x" * (8 * 1024 * 1024 + 1)
+        response = self.client.post(
+            reverse("join"),
+            self.submission_data(
+                headshot=SimpleUploadedFile(
+                    "large-headshot.png",
+                    oversized_photo,
+                    content_type="image/png",
+                )
+            ),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(ApplicationPhoto.objects.count(), 2)
+        self.assertGreater(
+            ApplicationPhoto.objects.get(photo_type="headshot").image.size,
+            8 * 1024 * 1024,
+        )
+
     def test_success_page_offers_a_prepared_whatsapp_message_after_saving(self):
         self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(about="A long personal statement not sent to WhatsApp."),
         )
         application = Application.objects.get()
@@ -267,20 +382,17 @@ class ApplicationSubmissionTests(TestCase):
             application.application_number,
             "Jordan Example",
             "20",
-            "Age category: Seniors (19–28)",
             "Gender: Female",
             "City: Cape Town",
             "Town: Sea Point",
             "jordan@example.com",
             "Student",
-            "Available day: Friday",
-            "Available for Full 6 Weeks: Yes",
             "Modelling experience: Yes",
             "Community theatre",
             "Instagram: @jordan",
             "TikTok: @jordanstudio",
-            "PHOTOS: http://testserver/application/",
-            "FULL APPLICATION: http://testserver/application/",
+            "PHOTOS: http://testserver/training/application/",
+            "FULL APPLICATION: http://testserver/training/application/",
         ):
             self.assertIn(expected, message)
         self.assertNotIn("A long personal statement", message)
@@ -297,8 +409,9 @@ class ApplicationSubmissionTests(TestCase):
         self.assertEqual(full_application.status_code, 200)
         self.assertContains(full_application, "Jordan Example")
         self.assertContains(full_application, "Community theatre")
-        self.assertContains(full_application, "Friday")
-        self.assertContains(full_application, "Seniors (19–28)")
+        self.assertNotIn("Age category:", message)
+        self.assertNotIn("Available day:", message)
+        self.assertNotIn("Available for Full 6 Weeks:", message)
         self.assertContains(full_application, "Female")
         self.assertContains(full_application, "Cape Town")
         self.assertContains(full_application, "Sea Point")
@@ -306,7 +419,7 @@ class ApplicationSubmissionTests(TestCase):
         self.assertContains(full_application, "Modelling experience")
 
     def test_two_required_photos_are_saved_and_visible_on_private_photo_page(self):
-        self.client.post(reverse("camp:apply"), self.submission_data())
+        self.client.post(reverse("join"), self.submission_data())
         application = Application.objects.get()
         self.assertEqual(application.photos.count(), 2)
         photos_response = self.client.get(
@@ -319,9 +432,9 @@ class ApplicationSubmissionTests(TestCase):
 
     def test_idempotency_key_prevents_duplicate_applications(self):
         data = self.submission_data()
-        first_response = self.client.post(reverse("camp:apply"), data)
+        first_response = self.client.post(reverse("join"), data)
         duplicate_response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(submission_key=data["submission_key"]),
         )
         self.assertEqual(urlsplit(first_response["Location"]).netloc, "wa.me")
@@ -336,13 +449,13 @@ class ApplicationSubmissionTests(TestCase):
     def test_missing_age_or_required_photo_is_rejected(self):
         no_age = self.submission_data()
         no_age.pop("age")
-        response = self.client.post(reverse("camp:apply"), no_age)
+        response = self.client.post(reverse("join"), no_age)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
         no_headshot = self.submission_data()
         no_headshot.pop("headshot")
-        response = self.client.post(reverse("camp:apply"), no_headshot)
+        response = self.client.post(reverse("join"), no_headshot)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
@@ -351,32 +464,32 @@ class ApplicationSubmissionTests(TestCase):
             with self.subTest(field=field):
                 data = self.submission_data()
                 data.pop(field)
-                response = self.client.post(reverse("camp:apply"), data)
+                response = self.client.post(reverse("join"), data)
                 self.assertEqual(response.status_code, 200)
                 self.assertFalse(Application.objects.exists())
 
-    def test_availability_and_modelling_experience_are_required(self):
+    def test_modelling_experience_is_required(self):
         no_available_days = self.submission_data()
         no_available_days.pop("preferred_days")
-        response = self.client.post(reverse("camp:apply"), no_available_days)
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(Application.objects.exists())
+        response = self.client.post(reverse("join"), no_available_days)
+        self.assertEqual(response.status_code, 302)
+        Application.objects.all().delete()
 
         no_experience_answer = self.submission_data()
         no_experience_answer.pop("has_modelling_experience")
-        response = self.client.post(reverse("camp:apply"), no_experience_answer)
+        response = self.client.post(reverse("join"), no_experience_answer)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
         no_gender_answer = self.submission_data()
         no_gender_answer.pop("gender")
-        response = self.client.post(reverse("camp:apply"), no_gender_answer)
+        response = self.client.post(reverse("join"), no_gender_answer)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Application.objects.exists())
 
     def test_no_modelling_experience_discards_optional_experience_details(self):
         self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(
                 has_modelling_experience="no",
                 previous_experience="Should not be stored",
@@ -386,42 +499,43 @@ class ApplicationSubmissionTests(TestCase):
         self.assertFalse(application.has_modelling_experience)
         self.assertEqual(application.previous_experience, "")
 
-    def test_age_category_must_match_typed_age(self):
-        response = self.client.post(
-            reverse("camp:apply"),
-            self.submission_data(age_category="kids"),
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(Application.objects.exists())
-        self.assertContains(response, "matches your age")
+    def test_training_age_category_must_match_typed_age(self):
+        from .forms import TrainingApplicationForm
+        form = TrainingApplicationForm(self.submission_data(age_category="kids"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("does not match the selected category", form.errors["age_category"][0])
+
+    def test_phone_and_email_formats_are_validated(self):
+        from .forms import TrainingApplicationForm
+        for field, value in (("phone", "12345"), ("whatsapp_number", "06819467a5"), ("phone", "+27681946795"), ("email", "name@domain")):
+            with self.subTest(field=field, value=value):
+                form = TrainingApplicationForm(self.submission_data(**{field: value}))
+                self.assertFalse(form.is_valid())
+                self.assertIn(field, form.errors)
 
     def test_kids_category_accepts_age_12_and_shows_2027_notice(self):
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(
                 age="12",
                 age_category="kids",
                 gender="male",
                 guardian_name="Jordan Guardian",
-                guardian_phone="+27123456789",
+                guardian_phone="0123456789",
                 guardian_consent="on",
             ),
         )
         application = Application.objects.get()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(application.age, 12)
-        self.assertEqual(application.age_category, Application.AgeCategory.KIDS)
+        self.assertEqual(application.age_category, "")
         self.assertEqual(application.gender, Application.Gender.MALE)
-        self.assertIn(
-            "Age category: Kids (5–12)",
-            parse_qs(urlsplit(response["Location"]).query)["text"][0],
-        )
 
     def test_age_outside_category_ranges_is_rejected(self):
         for age in ("4", "29"):
             with self.subTest(age=age):
                 response = self.client.post(
-                    reverse("camp:apply"),
+                    reverse("join"),
                     self.submission_data(age=age),
                 )
                 self.assertEqual(response.status_code, 200)
@@ -433,7 +547,7 @@ class ApplicationSubmissionTests(TestCase):
 
     def test_under_18_applicant_needs_guardian_details_and_consent(self):
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(
                 age="16",
                 age_category="teens",
@@ -443,16 +557,16 @@ class ApplicationSubmissionTests(TestCase):
         self.assertFalse(Application.objects.exists())
         self.assertContains(response, "parent or guardian")
 
-    @patch("camp.views.ApplicationForm.save", side_effect=OSError("Disk unavailable"))
+    @patch("camp.views.ModelApplicationForm.save", side_effect=OSError("Disk unavailable"))
     def test_storage_failure_shows_error_and_does_not_redirect_to_whatsapp(self, _save):
         response = self.client.post(
-            reverse("camp:apply"),
+            reverse("join"),
             self.submission_data(),
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            "submit your application. Please try again.",
+            "because of a technical problem",
         )
         self.assertFalse(Application.objects.exists())
 
@@ -474,8 +588,8 @@ class WhatsAppHandoffTests(TestCase):
         application = Application.objects.create(
             full_name="Morgan Applicant",
             email="morgan@example.com",
-            phone="+27123456789",
-            whatsapp_number="+27671234567",
+            phone="0123456789",
+            whatsapp_number="0671234567",
             age=21,
             age_category=Application.AgeCategory.SENIORS,
             gender=Application.Gender.FEMALE,
@@ -498,7 +612,7 @@ class WhatsAppHandoffTests(TestCase):
         message = parse_qs(parts.query)["text"][0]
         self.assertEqual(parts.netloc, "wa.me")
         self.assertEqual(parts.path, "/27681946795")
-        self.assertIn("https://agency.example/application/", message)
+        self.assertIn("https://agency.example/training/application/", message)
         self.assertIn("/photos/", message)
         self.assertIn("Morgan Applicant", message)
         self.assertIn("morgan@example.com", message)
@@ -524,7 +638,7 @@ class WhatsAppHandoffTests(TestCase):
         application = Application.objects.create(
             full_name="Morgan Applicant",
             email="morgan@example.com",
-            phone="+27123456789",
+            phone="0123456789",
             city="Durban",
         )
         request = RequestFactory().get("/", HTTP_HOST="agency.example", secure=True)
@@ -548,7 +662,7 @@ class PrivatePhotoTests(TestCase):
         application = Application.objects.create(
             full_name="Taylor Example",
             email="taylor@example.com",
-            phone="+27123456789",
+            phone="0123456789",
             city="Johannesburg",
             privacy_consent=True,
             photo_consent=True,

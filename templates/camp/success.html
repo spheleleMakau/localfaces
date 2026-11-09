@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "camp/base.html" %}
 {% block title %}Application received — Local Faces Agency{% endblock %}
-{% block content %}
+{% block camp_content %}
 <section class="success-page">
   <div class="success-art" aria-hidden="true"><span>LF</span><i></i><b></b></div>
   <div class="success-copy">
@@ -10,7 +10,7 @@
     <div class="application-reference"><span>YOUR APPLICATION NUMBER</span><strong>{{ application.application_number }}</strong></div>
     <a class="button button-dark whatsapp-submit" href="{{ whatsapp_url }}">Send application via WhatsApp <span aria-hidden="true">↗</span></a>
     <p class="muted">Your application is saved even if you choose not to send the WhatsApp message. The message contains private application links; only share them with the agency.</p>
-    <a class="text-link" href="{% url 'camp:apply' %}">Return to the application</a>
+    {% if application.kind == "model" %}<a class="text-link" href="{% url 'join' %}">Return to the application</a>{% else %}<a class="text-link" href="{% url 'camp:apply' %}">View training details</a>{% endif %}
   </div>
 </section>
 {% endblock %}

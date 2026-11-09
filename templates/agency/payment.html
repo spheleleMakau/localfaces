@@ -1,0 +1,21 @@
+{% extends "camp/base.html" %}
+{% block title %}EFT payment — Local Faces{% endblock %}
+{% block camp_content %}
+<section class="shop-page">
+  <p class="eyebrow">Your order</p><h1>{% if order.status == "paid" %}Payment confirmed{% else %}Payment status{% endif %}</h1>
+  <p>Order reference: <strong>{{ order.token }}</strong></p>
+  <p>Total payable for this order: <strong>R{{ order.total|floatformat:2 }}</strong></p>
+  {% include "agency/_order_balance.html" %}
+  {% if order.status == "paid" %}
+    <p>Your payment has been confirmed.</p>
+  {% else %}
+    <h2>Pay by EFT</h2>
+    <p><strong>Bank:</strong> Nedbank<br>
+      <strong>Account name:</strong> localfaces Entertainment<br>
+      <strong>Account number:</strong> 1330686349<br>
+      <strong>Reference:</strong> {{ order.token }}</p>
+    <p>Email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>.</p>
+  {% endif %}
+  <a class="shop-link" href="{% url 'training_shop' %}">Training options</a>
+</section>
+{% endblock %}

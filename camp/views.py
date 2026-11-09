@@ -2,46 +2,64 @@ import logging
 import mimetypes
 import uuid
 
-from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
 from django.core.files.storage import default_storage
 from django.db import DatabaseError, IntegrityError, transaction
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_GET
 
-from .forms import ApplicationForm
-from .models import Application, ApplicationPhoto
+from .forms import ModelApplicationForm
+from .models import Application, ApplicationEmail, ApplicationPhoto
+from .notifications import send_application_email
 from .sharing import application_share_token, get_shared_application
 from .whatsapp import build_application_whatsapp_url
 
 logger = logging.getLogger(__name__)
 
+def model_application_redirect(request, application):
+    notification = ApplicationEmail.objects.filter(application=application).first()
+    if notification and notification.status != ApplicationEmail.Status.SENT:
+        return redirect("camp:success", token=application.share_token)
+    return redirect(build_application_whatsapp_url(application, request))
+
+
+@require_GET
+def training_details(request):
+    return render(request, "camp/apply.html")
+
 
 def apply(request):
     if request.method == "POST":
-        form = ApplicationForm(request.POST, request.FILES)
+        form = ModelApplicationForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 existing = Application.objects.filter(
                     submission_key=form.cleaned_data["submission_key"]
                 ).first()
                 if existing:
-                    return redirect(
-                        build_application_whatsapp_url(existing, request)
-                    )
+                    if existing.kind != Application.Kind.MODEL:
+                        form.add_error(None, "This submission has already been used. Please start a new application.")
+                        form.add_error("submission_key", "Reload the page for a new submission.")
+                        return render(request, "agency/join.html", {"form": form, "show_model": True})
+                    return model_application_redirect(request, existing)
                 try:
                     with transaction.atomic():
                         application = form.save()
+                        notification = ApplicationEmail.objects.create(application=application)
                 except IntegrityError:
                     existing = Application.objects.filter(
                         submission_key=form.cleaned_data["submission_key"]
                     ).first()
                     if existing is None:
                         raise
-                    return redirect(
-                        build_application_whatsapp_url(existing, request)
-                    )
+                    if existing.kind != Application.Kind.MODEL:
+                        form.add_error(None, "This submission has already been used. Please start a new application.")
+                        form.add_error("submission_key", "Reload the page for a new submission.")
+                        return render(request, "agency/join.html", {"form": form, "show_model": True})
+                    return model_application_redirect(request, existing)
             except (DatabaseError, OSError):
                 for image_path in form.saved_photo_paths:
                     try:
@@ -53,21 +71,22 @@ def apply(request):
                 logger.exception("Could not save a Local Faces application.")
                 form.add_error(
                     None,
-                    "We couldn't submit your application. Please try again.",
+                    "We couldn't save your application because of a technical problem. Please try again, or contact info@localfaces.co.za if the problem continues.",
                 )
             else:
+                if not send_application_email(notification, request):
+                    return redirect("camp:success", token=application.share_token)
                 return redirect(
                     build_application_whatsapp_url(application, request)
                 )
     else:
-        form = ApplicationForm(initial={"submission_key": uuid.uuid4()})
+        form = ModelApplicationForm(initial={"submission_key": uuid.uuid4()})
     return render(
         request,
-        "camp/apply.html",
+        "agency/join.html",
         {
             "form": form,
-            "photo_max_mb": f"{settings.MAX_APPLICATION_PHOTO_BYTES / (1024 * 1024):g}",
-            "max_application_photo_bytes": settings.MAX_APPLICATION_PHOTO_BYTES,
+            "show_model": request.method == "POST",
         },
     )
 

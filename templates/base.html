@@ -1,44 +1,65 @@
 {% load static %}
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f5f2eb">
-  <meta name="description" content="Apply to the Local Faces Agency 6-Week Summer Camp.">
-  <title>{% block title %}Local Faces Agency — 6-Week Summer Camp{% endblock %}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/site.css' %}">
-  {% block extra_head %}{% endblock %}
-</head>
-<body>
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header">
-    <a class="brand" href="{% url 'camp:apply' %}" aria-label="Local Faces Agency application">
-      <img class="brand-logo" src="{% static 'logo.jpg' %}" alt="Local Faces Agency">
-    </a>
-    <a class="button button-small button-dark header-apply" href="#application-form">Apply now <span aria-hidden="true">↓</span></a>
-  </header>
-
-  <main id="main">
-    {% if messages %}
-      <div class="flash-messages" role="status">
-        {% for message in messages %}<p class="flash flash-{{ message.tags }}">{{ message }}</p>{% endfor %}
+<html lang="en-ZA">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1d1b18">
+    <meta name="description" content="{% block description %}Local Faces Talent Agency — representing models of all ages and sizes, and content creators.{% endblock %}">
+    <title>{% block title %}Local Faces — Talent Agency{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'agency/css/site.css' %}?v=18">
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header" data-header>
+      <a class="brand" href="{% url 'home' %}" aria-label="Local Faces Talent Agency home">
+        <span class="brand-monogram"><img src="{% static 'agency/img/logo-light.png' %}" alt="" width="605" height="200"></span>
+        <span class="brand-wordmark" aria-hidden="true"><span class="brand-name">Local Faces</span><span class="brand-tagline">Talent Agency</span></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" data-menu-toggle>
+        <span>Menu</span><span class="menu-toggle-lines" aria-hidden="true"><i></i><i></i></span>
+      </button>
+      <nav class="primary-navigation" id="primary-navigation" aria-label="Main navigation" data-navigation>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'home' %}#about">About</a>
+        <a href="{% url 'home' %}#talent">Talent</a>
+        <a href="{% url 'training_shop' %}">Training</a>
+        <a href="{% url 'academy_opportunity' %}">Start an academy</a>
+        <a href="{% url 'training_cart' %}">Cart</a>
+        <a href="{% url 'home' %}#contact">Contact</a>
+        <a class="button button-small button-dark nav-join" href="{% url 'join' %}">Join our talent pool</a>
+      </nav>
+    </header>
+    <main id="main-content">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer" id="contact">
+      <div class="footer-main">
+        <a class="brand brand-footer" href="{% url 'home' %}" aria-label="Local Faces Talent Agency home">
+          <span class="brand-monogram"><img src="{% static 'agency/img/logo-light.png' %}" alt="" width="605" height="200" loading="lazy"></span>
+          <span class="brand-wordmark" aria-hidden="true"><span class="brand-name">Local Faces</span><span class="brand-tagline">Talent Agency</span></span>
+        </a>
+        <p>Real people. Real talent.<br>Room to become.</p>
+        <a class="footer-contact" href="mailto:info@localfaces.co.za">info@localfaces.co.za</a>
       </div>
-    {% endif %}
-    {% block content %}{% endblock %}
-  </main>
-
-  <footer class="site-footer">
-    <a class="brand brand-footer" href="{% url 'camp:apply' %}">
-      <img class="brand-logo" src="{% static 'logo.jpg' %}" alt="Local Faces Agency">
-    </a>
-    <p>6-Week Summer Camp <span aria-hidden="true">·</span> Local Faces Agency</p>
-    <small>Programme details are subject to confirmation by Local Faces Agency.</small>
-  </footer>
-  <script src="{% static 'js/site.js' %}" defer></script>
-  {% block extra_js %}{% endblock %}
-</body>
+      <form class="enquiry-form" data-enquiry-form>
+        <h2>Send us an enquiry</h2>
+        <label for="enquiry-name">Your name</label>
+        <input id="enquiry-name" name="name" type="text" maxlength="100" autocomplete="name" required>
+        <label for="enquiry-message">Your enquiry</label>
+        <textarea id="enquiry-message" name="message" rows="4" maxlength="1000" required></textarea>
+        <button class="button button-champagne" type="submit">Send via WhatsApp <span aria-hidden="true">→</span></button>
+      </form>
+      <div class="footer-bottom">
+        <span>&copy; {% now "Y" %} Local Faces Talent Agency</span>
+        <span>South Africa</span>
+      </div>
+    </footer>
+    <script src="{% static 'agency/js/site.js' %}?v=9" defer></script>
+    {% block extra_scripts %}{% endblock %}
+  </body>
 </html>

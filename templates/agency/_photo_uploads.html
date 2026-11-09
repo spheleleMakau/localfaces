@@ -1,0 +1,25 @@
+{% load static %}
+<fieldset class="photo-uploads">
+  <legend>Applicant photographs <span class="required-mark">*</span></legend>
+  <p class="photo-uploads-intro">Upload two photos: one full-length and one profile photo or selfie. JPG, JPEG or PNG.</p>
+  <div class="photo-uploads-grid">
+    {% for field in form %}
+      {% if field.name == "headshot" or field.name == "full_length_photo" %}
+        <div id="error-{{ field.name }}" class="form-field photo-upload-field {% if field.errors %}has-error{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}<span class="required-mark">*</span></label>
+          <div class="upload-box {% if field.name == 'headshot' %}upload-box-example{% endif %}">
+            {% if field.name == "headshot" %}
+              <img class="upload-example-image" src="{% static 'agency/img/self.jpeg' %}" alt="">
+              <span class="upload-example-label">Selfie example</span>
+            {% else %}<span class="upload-icon" aria-hidden="true">↥</span>{% endif %}
+            {{ field }}
+            <span class="upload-prompt">Choose this photograph</span><small>JPG, JPEG or PNG</small>
+          </div>
+          {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+          <div class="photo-preview" data-photo-preview aria-live="polite"></div>
+          {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</fieldset>

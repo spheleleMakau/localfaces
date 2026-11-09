@@ -1,0 +1,11 @@
+<details class="training-city">
+  <summary><strong>{{ city }}</strong><span>Hosted by Semu</span><span class="training-city-action">View fees and booking</span></summary>
+  <div class="training-city-content">
+    <p class="training-status"><strong>December intake fully booked!</strong><br>Registrations for 2026 are officially closed. We look forward to welcoming new talent in 2027!</p>
+    <p class="training-fees"><strong>Registration: R500</strong> (non-refundable)<br><strong>Course: R2,500</strong><br><strong>Total: R3,000</strong></p>
+    <p>Pay the R500 registration fee by EFT or bank deposit first. Choose to pay the remaining R2,500 in one payment or in two monthly payments of R1,250, arranged separately with Local Faces.</p>
+    <p>One-on-one training with Semu is available in all cities at <strong>R1,500 per hour</strong>.</p>
+    <p>Enquiries: <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a></p>
+    <a class="button button-champagne" href="{% url 'training_shop' %}?city={{ city|urlencode }}#training-selection">Purchase training <span aria-hidden="true">→</span></a>
+  </div>
+</details>

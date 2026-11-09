@@ -1,0 +1,7 @@
+{% for item in order.items %}
+  {% if item.training == "course" and item.balance_due and item.balance_due != "0.00" %}
+    <p>Group course in {{ item.city }}: R{{ item.subtotal|floatformat:2 }} registration payable through this order. The remaining R{{ item.balance_due|floatformat:2 }} course fee is arranged separately with Local Faces.</p>
+  {% elif item.training == "academy" %}
+    <p>Academy opportunity in {{ item.city }}: first payment R{{ item.subtotal|floatformat:2 }} through this order. Remaining payments: R{{ item.remaining_installments.0|floatformat:2 }} in month two and R{{ item.remaining_installments.1|floatformat:2 }} in month three, arranged separately with Local Faces.</p>
+  {% endif %}
+{% endfor %}

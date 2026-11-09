@@ -1,38 +1,34 @@
-"""Settings for the Local Faces Agency application."""
 import os
 from pathlib import Path
 
 import dj_database_url
-from dotenv import load_dotenv
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-local-faces-development-key-change-before-deployment",
-)
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in {"1", "true", "yes"}
-if not DEBUG and SECRET_KEY.startswith("django-insecure-"):
-    from django.core.exceptions import ImproperlyConfigured
 
-    raise ImproperlyConfigured(
-        "Set DJANGO_SECRET_KEY to a unique secret when DJANGO_DEBUG is disabled."
-    )
+# Render sets RENDER=true, so production defaults to DEBUG off (enables WhiteNoise).
+DEBUG = os.environ.get("DEBUG", "False" if os.environ.get("RENDER") else "True").lower() == "true"
+
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if not DEBUG and not os.environ.get("RENDER"):
+        raise RuntimeError("SECRET_KEY must be set when DEBUG is False.")
+    # Testing-only fallback; set SECRET_KEY in Render's environment for real use.
+    SECRET_KEY = "local-development-key-change-before-deploy"
+
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get(
-        "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"
-    ).split(",")
+    for host in os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
     if host.strip()
 ]
-render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-if render_hostname:
-    ALLOWED_HOSTS.append(render_hostname)
-ALLOWED_HOSTS.extend(
-    host
-    for host in ("localfaces.co.za", "www.localfaces.co.za")
-    if host not in ALLOWED_HOSTS
-)
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}" for host in ALLOWED_HOSTS if host not in ("127.0.0.1", "localhost")
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -41,12 +37,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "agency",
     "camp.apps.CampConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -54,6 +50,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+if not DEBUG:
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 ROOT_URLCONF = "localfaces.urls"
 
@@ -73,118 +71,64 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "localfaces.wsgi.application"
-ASGI_APPLICATION = "localfaces.asgi.application"
 
-database_url = os.environ.get("DATABASE_URL")
-if database_url:
-    DATABASES = {
-        "default": dj_database_url.parse(
-            database_url,
-            conn_max_age=600,
-            ssl_require=not DEBUG,
-        )
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": os.environ.get(
-                "DJANGO_DB_ENGINE", "django.db.backends.sqlite3"
-            ),
-            "NAME": os.environ.get(
-                "DJANGO_DB_NAME", str(BASE_DIR / "db.sqlite3")
-            ),
-            "USER": os.environ.get("DJANGO_DB_USER", ""),
-            "PASSWORD": os.environ.get("DJANGO_DB_PASSWORD", ""),
-            "HOST": os.environ.get("DJANGO_DB_HOST", ""),
-            "PORT": os.environ.get("DJANGO_DB_PORT", ""),
-            "CONN_MAX_AGE": 60,
-        }
-    }
+DATABASES = {
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": (
-            "django.contrib.auth.password_validation."
-            "UserAttributeSimilarityValidator"
-        )
-    },
-    {
-        "NAME": (
-            "django.contrib.auth.password_validation.MinimumLengthValidator"
-        )
-    },
-    {
-        "NAME": (
-            "django.contrib.auth.password_validation.CommonPasswordValidator"
-        )
-    },
-    {
-        "NAME": (
-            "django.contrib.auth.password_validation."
-            "NumericPasswordValidator"
-        )
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "en"
+LANGUAGE_CODE = "en-za"
 TIME_ZONE = "Africa/Johannesburg"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static", BASE_DIR / "img"]
+STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-MEDIA_ROOT = Path(
-    os.environ.get("DJANGO_MEDIA_ROOT", str(BASE_DIR / "private_uploads"))
-)
-MEDIA_URL = "private/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
         "BACKEND": (
             "whitenoise.storage.CompressedManifestStaticFilesStorage"
-        )
+            if not DEBUG
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        ),
     },
 }
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+MEDIA_ROOT = Path(os.environ.get("DJANGO_MEDIA_ROOT", str(BASE_DIR / "private_uploads")))
+MEDIA_URL = "private/"
+
 LOGIN_URL = "admin:login"
 LOGIN_REDIRECT_URL = "camp:dashboard"
 LOGOUT_REDIRECT_URL = "camp:apply"
 
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SAMESITE = "Lax"
-X_FRAME_OPTIONS = "DENY"
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
-    if origin.strip()
-]
-if render_hostname:
-    CSRF_TRUSTED_ORIGINS.append(f"https://{render_hostname}")
-CSRF_TRUSTED_ORIGINS.extend(
-    origin
-    for origin in (
-        "https://localfaces.co.za",
-        "https://www.localfaces.co.za",
-    )
-    if origin not in CSRF_TRUSTED_ORIGINS
-)
+LOCAL_FACES_WHATSAPP_NUMBER = os.environ.get("LOCAL_FACES_WHATSAPP_NUMBER", "27681946795")
+EMAIL_BACKEND = "camp.email_backend.ResendEmailBackend"
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "info@localfaces.co.za")
+PAYFAST_MERCHANT_ID = os.environ.get("PAYFAST_MERCHANT_ID", "")
+PAYFAST_MERCHANT_KEY = os.environ.get("PAYFAST_MERCHANT_KEY", "")
+PAYFAST_PASSPHRASE = os.environ.get("PAYFAST_PASSPHRASE", "")
+PAYFAST_SITE_URL = os.environ.get("PAYFAST_SITE_URL", "")
+PAYFAST_SANDBOX = os.environ.get("PAYFAST_SANDBOX", "True").lower() == "true"
 
-LOCAL_FACES_WHATSAPP_NUMBER = os.environ.get(
-    "LOCAL_FACES_WHATSAPP_NUMBER", "27681946795"
-)
-MAX_APPLICATION_PHOTO_BYTES = int(
-    os.environ.get("MAX_APPLICATION_PHOTO_BYTES", str(8 * 1024 * 1024))
-)
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31_536_000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "True").lower() == "true"
+    SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "3600"))
+    SECURE_CONTENT_TYPE_NOSNIFF = True

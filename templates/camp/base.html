@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'camp/css/training.css' %}?v=5">{% endblock %}
+{% block content %}
+<div class="camp-page">
+  {% if messages %}
+    <div class="flash-messages" role="status">
+      {% for message in messages %}<p class="flash flash-{{ message.tags }}">{{ message }}</p>{% endfor %}
+    </div>
+  {% endif %}
+  {% block camp_content %}{% endblock %}
+</div>
+{% endblock %}

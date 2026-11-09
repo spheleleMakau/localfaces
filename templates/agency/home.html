@@ -1,0 +1,132 @@
+﻿{% extends "base.html" %}
+{% load static %}
+{% block title %}Local Faces — Real People. Real Talent.{% endblock %}
+{% block description %}Local Faces Talent Agency represents models of all ages and sizes, and content creators. Discover training, photography and entertainment services.{% endblock %}
+{% block content %}
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="hero-tags"><span>Models</span><span>Talent</span><span>Training</span></p>
+      <h1 id="hero-title">REAL PEOPLE.<br><strong>REAL</strong> TALENT.</h1>
+      <span class="hero-rule"></span>
+      <p class="hero-intro">A home for Models and Talent of all ages, sizes and backgrounds.</p>
+      <div class="hero-actions">
+        <a class="button button-champagne" href="{% url 'join' %}">Join our talent pool <span aria-hidden="true">→</span></a>
+        <a class="button button-ghost" href="{% url 'camp:apply' %}">Explore training</a>
+      </div>
+    </div>
+    <div class="hero-collage">
+      <img class="hero-image" src="{% static 'agency/img/hero-collage.jpg' %}" alt="Local Faces collage featuring models and a photographer" width="757" height="388" fetchpriority="high">
+    </div>
+  </section>
+
+  <section class="services" id="entertainment" aria-label="Agency services">
+    <a class="service" href="#talent">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="17" cy="16" r="6"/><circle cx="32" cy="18" r="5"/><path d="M5 38c0-7 5-12 12-12s12 5 12 12M29 27c6-2 13 2 13 10"/></svg>
+      <h2>Talent Representation</h2>
+      <p>Models of all ages and sizes &amp; Content Creators</p>
+    </a>
+    <a class="service" href="#training-registration">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 9 3 19l21 10 21-10zM11 24v9c0 3 6 6 13 6s13-3 13-6v-9M45 19v14"/></svg>
+      <h2>Training and Packages Available</h2>
+      <p>Modelling, On-Camera, Branding &amp; Industry Preparation</p>
+    </a>
+    <a class="service" href="#photography">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 15h9l3-5h12l3 5h9v24H6z"/><circle cx="24" cy="26" r="7"/></svg>
+      <h2>Photography</h2>
+      <p>Professional Shoots, Digitals &amp; Portfolios</p>
+    </a>
+    <a class="service" href="#join">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 20h36v20H6zM6 20l5-9 7 3-5 6M20 14l7 3-5 6M34 17l7 3"/></svg>
+      <h2>Entertainment</h2>
+      <p>Production, Podcast &amp; Content Creation</p>
+    </a>
+    <a class="service" href="#merchandise">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 16h30l2 25H7zM17 20v-6a7 7 0 0 1 14 0v6"/></svg>
+      <h2>Merchandise</h2>
+      <p>Official Local Faces Apparel &amp; Lifestyle Range</p>
+    </a>
+  </section>
+
+  <section class="academy" id="training" aria-labelledby="academy-title">
+    <div class="academy-details" id="training-information">
+      <p class="eyebrow">Learn. Practise. Grow.</p>
+      <h2 id="academy-title">LOCAL FACES<br><span>MODELLING ACADEMY</span></h2>
+      <p class="academy-intro">Turn Your Look Into an Opportunity. Turn Your Name Into a Brand.</p>
+      <h3>Training details</h3>
+      {% include "agency/_training_details.html" with show_course_topics=False show_training_outcome=False %}
+    </div>
+    <img class="academy-photo" src="{% static 'agency/img/walkaway1.jpg' %}" alt="Professional model digitals showing a model's poses and looks" width="956" height="1600" loading="lazy">
+    <div class="academy-copy">
+      {% include "agency/_training_outcome.html" %}
+      <h3>What the training covers</h3>
+      {% include "agency/_course_topics.html" %}
+      <div class="academy-promise">
+        <h3>More Than Modelling. We’re Building Brands.</h3>
+        <p>At Local Faces, we equip aspiring talent with the confidence, knowledge and practical skills to stand out, create opportunities and build lasting careers.</p>
+        <p><strong>Your Look. Your Brand. Your Future.</strong></p>
+      </div>
+      <a class="shop-link" href="{% url 'academy_opportunity' %}">Start your academy →</a>
+    </div>
+    <img class="academy-portrait" src="{% static 'agency/img/academy-portrait.jpg' %}" alt="Smiling model in a black top and jeans" width="190" height="300" loading="lazy">
+  </section>
+
+  <section class="talent" id="talent" aria-labelledby="talent-title">
+    <h2 id="talent-title" class="visually-hidden">Talent categories</h2>
+    <a class="tile" href="{% url 'models_gallery' %}" aria-label="Models">
+      <img src="{% static 'agency/img/model.jpeg' %}" alt="" loading="lazy">
+      <span class="tile-text"><strong>Models</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="tile" href="{% url 'entertainers_gallery' %}" aria-label="Content creators">
+      <img src="{% static 'agency/img/1000834848.jpg' %}" alt="" loading="lazy">
+      <span class="tile-text"><strong>Content Creators</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="tile" id="photography" href="{% url 'production_gallery' %}">
+      <img src="{% static 'agency/img/photography.jpg' %}" alt="Behind the scenes on a photo shoot" width="226" height="183" loading="lazy">
+      <span class="tile-text"><strong>Production</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    </a>
+    <div class="merch" id="merchandise">
+      <div class="merch-copy">
+        <div class="brand merch-logo" aria-label="Local Faces Talent Agency">
+          <span class="brand-monogram"><img src="{% static 'agency/img/logo-dark.png' %}" alt="" width="605" height="200" loading="lazy"></span>
+          <span class="brand-wordmark" aria-hidden="true"><span class="brand-name">Local Faces</span><span class="brand-tagline">Talent Agency</span></span>
+        </div>
+        <h2>MERCHANDISE</h2>
+        <p>Official Local Faces apparel. Wear the brand.</p>
+        <span class="button button-dark button-disabled" aria-disabled="true">Shop coming soon</span>
+        <p class="note">Product details and pricing to be confirmed.</p>
+      </div>
+      <img class="merch-tote" src="{% static 'agency/img/mach.jpg' %}" alt="Local Faces canvas tote bag" width="1254" height="1254" loading="lazy">
+    </div>
+  </section>
+
+  <section class="founder" id="about" aria-labelledby="founder-title">
+    <div class="founder-images">
+      <img class="founder-main-image" src="{% static 'agency/img/founder.jpeg' %}" alt="Semu, founder of Local Faces" loading="lazy">
+      <img class="founder-secondary-image" src="{% static 'agency/img/founder1.jpeg' %}" alt="Semu in a white outfit" loading="lazy">
+    </div>
+    <div class="founder-copy">
+      <p class="eyebrow">Meet the founder</p>
+      <h2 id="founder-title">SEMU SHANGASE</h2>
+      <p><strong>Model, Actress &amp; Founder of Local Faces Talent Agency</strong></p>
+      <p>Semu Shangase is an accomplished South African model, actress and entrepreneur with an impressive career spanning over 15 years in the modelling and entertainment industry.</p>
+      <p>Throughout her career, she has worked with leading household brands such as Avon, NIVEA and Dark &amp; Lovely Au Naturale, featuring in major advertising campaigns, television commercials and billboards across Africa.</p>
+      <p>Her modelling portfolio also includes four cover features for Nubian Magazine, alongside appearances in various other magazines across South Africa.</p>
+      <p>Her acting credits include Netflix productions Smart Casual and The Executive, as well as Mzansi Magic’s Isikweletu, further showcasing her versatility in the entertainment industry.</p>
+      <p>After more than 15 years of building a successful career, Semu has finally realised her long-standing dream of establishing her own agency, Local Faces Talent Agency.</p>
+      <p>With a wealth of industry experience and a passion for developing new talent, she is now dedicated to discovering, grooming and empowering the next generation of models, actors and entertainers.</p>
+      <p>Through Local Faces, Semu hopes to bridge the gap between aspiring talent and real industry opportunities, creating a platform where everyday people of all backgrounds, ages and body types have the opportunity to be seen, developed and represented.</p>
+      <a class="founder-portfolio-link" href="{% url 'founder_portfolio' %}">Explore Semu's portfolio <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <section class="join" id="join" aria-labelledby="join-title">
+    <p class="join-steps"><span>Develop</span><span>Shoot</span><span>Perform</span><span>Get Represented</span></p>
+    <h2 id="join-title" class="visually-hidden">Develop. Shoot. Perform. Get represented.</h2>
+    <p class="join-lead">Your journey starts here. Discover your potential and become part of Local Faces.</p>
+    <div class="join-actions">
+      <a class="button button-champagne" href="{% url 'join' %}">Join our talent pool <span aria-hidden="true">→</span></a>
+      <a class="button button-ghost" href="#contact">Contact our team</a>
+    </div>
+    <p class="note">Model applications are open. More talent categories are coming soon.</p>
+  </section>
+{% endblock %}

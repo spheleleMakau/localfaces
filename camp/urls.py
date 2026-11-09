@@ -5,8 +5,8 @@ from . import views
 app_name = "camp"
 
 urlpatterns = [
-    path("", views.apply, name="apply"),
-    path("apply/", views.apply, name="apply_form"),
+    path("", views.training_details, name="apply"),
+    path("apply/", views.training_details, name="apply_form"),
     path(
         "application-received/<uuid:token>/",
         views.success,

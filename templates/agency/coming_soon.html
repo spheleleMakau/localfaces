@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Local Faces{% endblock %}
+{% block content %}
+<section class="portfolio-page" aria-labelledby="gallery-title">
+  <div class="portfolio-intro">
+    <p class="eyebrow">Local Faces Talent Agency</p>
+    <h1 id="gallery-title">{{ title }}</h1>
+    <p>{{ title }} are soon to be uploaded.</p>
+  </div>
+  <div class="portfolio-cta"><a class="button button-champagne" href="{% url 'home' %}">Back to home <span aria-hidden="true">→</span></a></div>
+</section>
+{% endblock %}

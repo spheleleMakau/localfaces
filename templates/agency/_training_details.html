@@ -1,0 +1,40 @@
+﻿{% load static %}
+<div class="training-details">
+  <div class="training-announcement">
+    <details class="training-invitation">
+      <summary>You’re invited: December 2026 Academy Fashion Show &amp; Graduation</summary>
+      <div class="training-invitation-content">
+        <p>Join us to celebrate our rising talent, mingle and network with industry professionals.</p>
+        <p><strong>Tickets:</strong> R50 per person<br><strong>Venue:</strong> Shared upon enquiry</p>
+        <p>For tickets and enquiries, <a href="mailto:info@localfaces.co.za">email info@localfaces.co.za</a> or <a href="https://wa.me/27681946795">WhatsApp Semu on 068 194 6795</a>.</p>
+      </div>
+    </details>
+  </div>
+  <div class="training-registration" id="training-registration">
+    <p class="training-status"><strong>2027 registrations now open!</strong></p>
+    <p>Join Local Faces Modelling Academy in Johannesburg, Durban or Cape Town, hosted by Semu.</p>
+    <p>Limited spaces! First come, first serve. Registration closes once all spaces are filled.</p>
+    <p><strong>Secure your spot today!</strong></p>
+  </div>
+  {% if show_training_outcome != False %}
+    <div class="training-outcome">
+      <img src="{% static 'agency/img/walkaway1.jpg' %}" alt="Professional model digitals showing a model's poses and looks" width="956" height="1600" loading="lazy">
+      {% include "agency/_training_outcome.html" %}
+    </div>
+  {% endif %}
+  <div>
+    <p>Join our 6-week intensive training course.</p>
+    {% if show_course_topics != False %}
+      <section class="training-curriculum" aria-labelledby="course-topics-title">
+        <h3 id="course-topics-title">What the training covers</h3>
+        {% include "agency/_course_topics.html" %}
+      </section>
+    {% endif %}
+  </div>
+  <p class="training-locations-prompt"><strong>Choose a city</strong> — click a city below to view fees and book training.</p>
+  <div class="training-locations" role="group" aria-label="2027 training locations">
+    {% include "agency/_training_city.html" with city="Durban" %}
+    {% include "agency/_training_city.html" with city="Johannesburg" %}
+    {% include "agency/_training_city.html" with city="Cape Town" %}
+  </div>
+</div>
