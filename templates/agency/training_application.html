@@ -6,8 +6,8 @@
   <div class="talent-application-inner">
     <p class="eyebrow">{% if selection.training == "course" %}Group training{% else %}One-on-one training{% endif %} · 2027 · {{ selection.city }}</p>
     <h1 id="training-application-title">Training applicant details</h1>
-    <div class="privacy-note"><strong>Bank:</strong> Nedbank<br><strong>Account name:</strong> localfaces Entertainment<br><strong>Account number:</strong> 1330686349<br><strong>Reference:</strong> Applicant's name<br>Email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a></div>
-    {% if selection.training == "course" %}{% else %}<p>Complete one form per one-on-one booking before adding it to your cart. Training with Semu costs R1,500 per hour in your selected city.</p>{% endif %}
+    <div class="privacy-note"><strong>Bank:</strong> Nedbank<br><strong>Account name:</strong> LOCAL FACES ENTERTAINMENT<br><strong>Account number:</strong> 1330686349<br><strong>Reference:</strong> Applicant's name<br>Email proof of payment to <a href="mailto:info@localfaces.co.za">info@localfaces.co.za</a></div>
+    {% if selection.training == "course" %}{% else %}<p>Complete one form per one-on-one coaching request. We’ll review your profile and discuss your individual needs before confirming a tailored approach.</p>{% endif %}
     <form class="application-form" method="post" enctype="multipart/form-data" data-application-form>
       {% csrf_token %}
       {{ form.submission_key }}

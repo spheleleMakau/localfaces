@@ -7,11 +7,14 @@
       {% if field.name == "headshot" or field.name == "full_length_photo" %}
         <div id="error-{{ field.name }}" class="form-field photo-upload-field {% if field.errors %}has-error{% endif %}">
           <label for="{{ field.id_for_label }}">{{ field.label }}<span class="required-mark">*</span></label>
-          <div class="upload-box {% if field.name == 'headshot' %}upload-box-example{% endif %}">
+          <div class="upload-box {% if field.name == 'headshot' %}upload-box-example{% else %}upload-box-example-full-length{% endif %}">
             {% if field.name == "headshot" %}
               <img class="upload-example-image" src="{% static 'agency/img/self.jpeg' %}" alt="">
               <span class="upload-example-label">Selfie example</span>
-            {% else %}<span class="upload-icon" aria-hidden="true">↥</span>{% endif %}
+            {% else %}
+              <img class="upload-example-image" src="{% static 'agency/img/s.jpg' %}" alt="">
+              <span class="upload-example-label">Full-length example</span>
+            {% endif %}
             {{ field }}
             <span class="upload-prompt">Choose this photograph</span><small>JPG, JPEG or PNG</small>
           </div>

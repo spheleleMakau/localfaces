@@ -15,7 +15,9 @@
       </div>
     </div>
     <div class="hero-collage">
-      <img class="hero-image" src="{% static 'agency/img/hero-collage.jpg' %}" alt="Local Faces collage featuring models and a photographer" width="757" height="388" fetchpriority="high">
+      <img class="hero-image hero-panel-collage" src="{% static 'agency/img/hero-collage.jpg' %}" alt="Local Faces models" width="757" height="388" fetchpriority="high">
+      <img class="hero-panel-shoot" src="{% static 'agency/img/photography.jpg' %}" alt="A photographer shooting a model in a white studio" width="1589" height="1990" fetchpriority="high">
+      <img class="hero-panel-portrait" src="{% static 'agency/img/sphe.jpg' %}" alt="Smiling Local Faces model in a black top and jeans" width="1092" height="1600" fetchpriority="high">
     </div>
   </section>
 
@@ -35,7 +37,7 @@
       <h2>Photography</h2>
       <p>Professional Shoots, Digitals &amp; Portfolios</p>
     </a>
-    <a class="service" href="#join">
+    <a class="service" href="#content-creators">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 20h36v20H6zM6 20l5-9 7 3-5 6M20 14l7 3-5 6M34 17l7 3"/></svg>
       <h2>Entertainment</h2>
       <p>Production, Podcast &amp; Content Creation</p>
@@ -65,7 +67,10 @@
         <p>At Local Faces, we equip aspiring talent with the confidence, knowledge and practical skills to stand out, create opportunities and build lasting careers.</p>
         <p><strong>Your Look. Your Brand. Your Future.</strong></p>
       </div>
-      <a class="shop-link" href="{% url 'academy_opportunity' %}">Start your academy →</a>
+      <div class="academy-opportunity-cta">
+        <p>Interested in bringing Local Faces coaching to your town? Explore the opportunity to develop local talent as a coach.</p>
+        <a class="button button-champagne" href="{% url 'academy_opportunity' %}">Start your academy <span aria-hidden="true">→</span></a>
+      </div>
     </div>
     <img class="academy-portrait" src="{% static 'agency/img/academy-portrait.jpg' %}" alt="Smiling model in a black top and jeans" width="190" height="300" loading="lazy">
   </section>
@@ -73,15 +78,15 @@
   <section class="talent" id="talent" aria-labelledby="talent-title">
     <h2 id="talent-title" class="visually-hidden">Talent categories</h2>
     <a class="tile" href="{% url 'models_gallery' %}" aria-label="Models">
-      <img src="{% static 'agency/img/model.jpeg' %}" alt="" loading="lazy">
+      <img class="face-top" src="{% static 'agency/img/sphe2.jpeg' %}" alt="" loading="lazy">
       <span class="tile-text"><strong>Models</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
-    <a class="tile" href="{% url 'entertainers_gallery' %}" aria-label="Content creators">
-      <img src="{% static 'agency/img/1000834848.jpg' %}" alt="" loading="lazy">
+    <a class="tile" id="content-creators" href="{% url 'entertainers_gallery' %}" aria-label="Content creators">
+      <img src="{% static 'agency/img/sphe1.jpg' %}" alt="" loading="lazy">
       <span class="tile-text"><strong>Content Creators</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
     <a class="tile" id="photography" href="{% url 'production_gallery' %}">
-      <img src="{% static 'agency/img/photography.jpg' %}" alt="Behind the scenes on a photo shoot" width="226" height="183" loading="lazy">
+      <img src="{% static 'agency/img/prod.jpg' %}" alt="Film production crew and camera setup on location" loading="lazy">
       <span class="tile-text"><strong>Production</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
     <div class="merch" id="merchandise">
@@ -99,6 +104,18 @@
     </div>
   </section>
 
+  <section class="testimonial" aria-labelledby="testimonial-title">
+    <span class="testimonial-photo"><img src="{% static 'agency/img/ss.jpg' %}" alt="Sphelele Makau" width="1254" height="1920" loading="lazy"></span>
+    <figure>
+      <p class="eyebrow" id="testimonial-title">Testimonial</p>
+      <blockquote>
+        <p>Working with Semuhle has been such a beautiful journey. She saw potential in me, helped me embrace my natural look and guided me towards becoming a more confident version of myself.</p>
+        <p>I’m truly grateful for her encouragement, support and for opening doors to new opportunities in modelling.</p>
+      </blockquote>
+      <figcaption>— Sphelele Makau</figcaption>
+    </figure>
+  </section>
+
   <section class="founder" id="about" aria-labelledby="founder-title">
     <div class="founder-images">
       <img class="founder-main-image" src="{% static 'agency/img/founder.jpeg' %}" alt="Semu, founder of Local Faces" loading="lazy">
@@ -106,9 +123,9 @@
     </div>
     <div class="founder-copy">
       <p class="eyebrow">Meet the founder</p>
-      <h2 id="founder-title">SEMU SHANGASE</h2>
+      <h2 id="founder-title">SEMU</h2>
       <p><strong>Model, Actress &amp; Founder of Local Faces Talent Agency</strong></p>
-      <p>Semu Shangase is an accomplished South African model, actress and entrepreneur with an impressive career spanning over 15 years in the modelling and entertainment industry.</p>
+      <p>Semu is an accomplished South African model, actress and entrepreneur with an impressive career spanning over 15 years in the modelling and entertainment industry.</p>
       <p>Throughout her career, she has worked with leading household brands such as Avon, NIVEA and Dark &amp; Lovely Au Naturale, featuring in major advertising campaigns, television commercials and billboards across Africa.</p>
       <p>Her modelling portfolio also includes four cover features for Nubian Magazine, alongside appearances in various other magazines across South Africa.</p>
       <p>Her acting credits include Netflix productions Smart Casual and The Executive, as well as Mzansi Magic’s Isikweletu, further showcasing her versatility in the entertainment industry.</p>

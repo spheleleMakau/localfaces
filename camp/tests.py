@@ -263,8 +263,10 @@ class ApplicationSubmissionTests(TestCase):
     def test_email_failure_keeps_application_and_staff_can_retry(self):
         response = self.client.post(reverse("join"), self.submission_data())
         application = Application.objects.get()
-        self.assertRedirects(response, reverse("camp:success", args=[application.share_token]), fetch_redirect_response=False)
-        self.assertNotContains(self.client.get(response["Location"]), "Email delivery is temporarily unavailable")
+        self.assertEqual(response.status_code, 302)
+        whatsapp_redirect = urlsplit(response["Location"])
+        self.assertEqual(whatsapp_redirect.netloc, "wa.me")
+        self.assertEqual(whatsapp_redirect.path, "/27681946795")
         self.assertEqual(application.photos.count(), 2)
         self.assertEqual(application.notification_email.status, ApplicationEmail.Status.FAILED)
         staff = get_user_model().objects.create_superuser("reviewer", "reviewer@example.com", "password")

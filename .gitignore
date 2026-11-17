@@ -5,4 +5,5 @@ staticfiles/
 media/
 .env
 .venv/
+private_uploads/
 venv/private_uploads/

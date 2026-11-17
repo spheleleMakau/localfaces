@@ -20,9 +20,6 @@ from .whatsapp import build_application_whatsapp_url
 logger = logging.getLogger(__name__)
 
 def model_application_redirect(request, application):
-    notification = ApplicationEmail.objects.filter(application=application).first()
-    if notification and notification.status != ApplicationEmail.Status.SENT:
-        return redirect("camp:success", token=application.share_token)
     return redirect(build_application_whatsapp_url(application, request))
 
 
@@ -74,8 +71,7 @@ def apply(request):
                     "We couldn't save your application because of a technical problem. Please try again, or contact info@localfaces.co.za if the problem continues.",
                 )
             else:
-                if not send_application_email(notification, request):
-                    return redirect("camp:success", token=application.share_token)
+                send_application_email(notification, request)
                 return redirect(
                     build_application_whatsapp_url(application, request)
                 )
