@@ -10,6 +10,7 @@ urlpatterns = [
     path("models/", views.models_gallery, name="models_gallery"),
     path("entertainers/", views.entertainers_gallery, name="entertainers_gallery"),
     path("production/", views.production_gallery, name="production_gallery"),
+    path("photography/", views.photography_gallery, name="photography_gallery"),
     path("founder-portfolio/", views.founder_portfolio, name="founder_portfolio"),
     path("academy-opportunity/", shop.academy_opportunity, name="academy_opportunity"),
     path("shop/", shop.shop, name="training_shop"),

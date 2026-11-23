@@ -23,7 +23,11 @@ def entertainers_gallery(request):
 
 
 def production_gallery(request):
-    return _coming_soon(request, "Production")
+    return render(request, "agency/production_gallery.html")
+
+
+def photography_gallery(request):
+    return render(request, "agency/photography_gallery.html")
 
 
 def founder_portfolio(request):

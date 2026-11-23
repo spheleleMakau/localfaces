@@ -17,7 +17,7 @@
     <div class="hero-collage">
       <img class="hero-image hero-panel-collage" src="{% static 'agency/img/hero-collage.jpg' %}" alt="Local Faces models" width="757" height="388" fetchpriority="high">
       <img class="hero-panel-shoot" src="{% static 'agency/img/photography.jpg' %}" alt="A photographer shooting a model in a white studio" width="1589" height="1990" fetchpriority="high">
-      <img class="hero-panel-portrait" src="{% static 'agency/img/sphe.jpg' %}" alt="Smiling Local Faces model in a black top and jeans" width="1092" height="1600" fetchpriority="high">
+      <img class="hero-panel-portrait" src="{% static 'agency/img/muhlez.jpg' %}" alt="Smiling model in a Muhlez beauty campaign" width="853" height="1280" fetchpriority="high">
     </div>
   </section>
 
@@ -32,15 +32,15 @@
       <h2>Training and Packages Available</h2>
       <p>Modelling, On-Camera, Branding &amp; Industry Preparation</p>
     </a>
-    <a class="service" href="#photography">
+    <a class="service" href="{% url 'photography_gallery' %}">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 15h9l3-5h12l3 5h9v24H6z"/><circle cx="24" cy="26" r="7"/></svg>
       <h2>Photography</h2>
       <p>Professional Shoots, Digitals &amp; Portfolios</p>
     </a>
-    <a class="service" href="#content-creators">
+    <a class="service" href="#production">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 20h36v20H6zM6 20l5-9 7 3-5 6M20 14l7 3-5 6M34 17l7 3"/></svg>
       <h2>Entertainment</h2>
-      <p>Production, Podcast &amp; Content Creation</p>
+      <p>Production &amp; Podcast</p>
     </a>
     <a class="service" href="#merchandise">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 16h30l2 25H7zM17 20v-6a7 7 0 0 1 14 0v6"/></svg>
@@ -85,9 +85,9 @@
       <img src="{% static 'agency/img/sphe1.jpg' %}" alt="" loading="lazy">
       <span class="tile-text"><strong>Content Creators</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
-    <a class="tile" id="photography" href="{% url 'production_gallery' %}">
-      <img src="{% static 'agency/img/prod.jpg' %}" alt="Film production crew and camera setup on location" loading="lazy">
-      <span class="tile-text"><strong>Production</strong><small>Soon to be uploaded.</small></span><span class="tile-arrow" aria-hidden="true">→</span>
+    <a class="tile" id="production" href="{% url 'production_gallery' %}">
+      <img src="{% static 'agency/img/pod.jpg' %}" alt="Local Faces podcast recording studio with a microphone" loading="lazy">
+      <span class="tile-text"><strong>Production &amp; Podcast</strong><small>Studio and podcast production</small></span><span class="tile-arrow" aria-hidden="true">→</span>
     </a>
     <div class="merch" id="merchandise">
       <div class="merch-copy">

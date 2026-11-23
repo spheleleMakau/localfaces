@@ -22,21 +22,35 @@ from camp.notifications import send_application_email
 from camp.whatsapp import build_application_whatsapp_url
 
 logger = logging.getLogger(__name__)
-PRICES = {"course": Decimal("500.00"), "individual": Decimal("1500.00"), "academy": Decimal("1666.67")}
+PRICES = {"course": Decimal("500.00"), "individual": Decimal("2500.00"), "academy": Decimal("1666.67")}
 COURSE_BALANCE = Decimal("2500.00")
 ACADEMY_INSTALLMENTS = ("1666.67", "1666.66")
+INDIVIDUAL_MIN_SESSIONS = 3
+INDIVIDUAL_SESSION_HOURS = 2
+INDIVIDUAL_REGISTRATION_FEE = Decimal("500.00")
+INDIVIDUAL_DEPOSIT_RATE = Decimal("0.50")
 
 
 def cart_items(request):
     items = []
     for item in request.session.get("training_cart", []):
         price = PRICES[item["training"]]
-        quantity = item["hours"] if item["training"] == "individual" else 1
         if item["training"] == "course":
+            quantity = 1
+            subtotal = price
             balance_due = COURSE_BALANCE
         elif item["training"] == "academy":
+            quantity = 1
+            subtotal = price
             balance_due = sum(map(Decimal, ACADEMY_INSTALLMENTS))
+        elif item["training"] == "individual":
+            quantity = INDIVIDUAL_MIN_SESSIONS
+            deposit = price * quantity * INDIVIDUAL_DEPOSIT_RATE
+            subtotal = INDIVIDUAL_REGISTRATION_FEE + deposit
+            balance_due = deposit
         else:
+            quantity = 1
+            subtotal = price
             balance_due = Decimal("0.00")
         whatsapp_url = ""
         if item.get("application_number"):
@@ -47,8 +61,14 @@ def cart_items(request):
             **item,
             "whatsapp_url": whatsapp_url,
             "price": price,
-            "subtotal": price * quantity,
+            "subtotal": subtotal,
             "balance_due": str(balance_due),
+            **({
+                "sessions": INDIVIDUAL_MIN_SESSIONS,
+                "session_hours": INDIVIDUAL_SESSION_HOURS,
+                "registration_fee": INDIVIDUAL_REGISTRATION_FEE,
+                "deposit": deposit,
+            } if item["training"] == "individual" else {}),
             **({"remaining_installments": list(ACADEMY_INSTALLMENTS)} if item["training"] == "academy" else {}),
         })
     return items
@@ -97,7 +117,7 @@ def training_application(request):
                     application = Application.objects.filter(submission_key=pending["submission_key"]).first()
                     if application is None:
                         application = form.save()
-                        training_selection = {key: pending[key] for key in ("training", "city", "hours")}
+                        training_selection = {key: pending[key] for key in ("training", "city")}
                         notification = ApplicationEmail.objects.create(
                             application=application,
                             training_selection=training_selection,

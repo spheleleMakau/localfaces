@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Photography — Local Faces{% endblock %}
+{% block content %}
+<section class="portfolio-page" aria-labelledby="photography-title">
+  <div class="portfolio-intro">
+    <p class="eyebrow">Local Faces Talent Agency</p>
+    <h1 id="photography-title">Photography</h1>
+    <p>Studio portraits, digitals and portfolio photography.</p>
+  </div>
+  <div class="portfolio-grid photography-gallery-grid">
+    <figure><img src="{% static 'agency/img/sphe.jpg' %}" alt="Studio portrait of a smiling model" loading="lazy"><figcaption>Studio portrait</figcaption></figure>
+    <figure><img src="{% static 'agency/img/sphe2.jpeg' %}" alt="Model digitals in a black outfit" loading="lazy"><figcaption>Model digitals</figcaption></figure>
+    <figure><img src="{% static 'agency/img/walkaway1.jpg' %}" alt="Full-length model portfolio photograph" loading="lazy"><figcaption>Full-length portfolio</figcaption></figure>
+    <figure><img src="{% static 'agency/img/muhlez.jpg' %}" alt="Beauty campaign portrait featuring a skincare product" loading="lazy"><figcaption>Beauty campaign</figcaption></figure>
+  </div>
+  <div class="portfolio-cta"><a class="button button-champagne" href="{% url 'home' %}">Back to home <span aria-hidden="true">→</span></a></div>
+</section>
+{% endblock %}

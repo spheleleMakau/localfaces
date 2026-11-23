@@ -57,7 +57,8 @@ def send_application_email(notification, request):
             f"Training city: {selection['city']}",
         ])
         if selection["training"] == "individual":
-            lines.append(f"Hours: {selection['hours']}")
+            lines.append("Sessions: minimum 3, 2 hours per session at R2,500 per session")
+            lines.append("Deposit: 50%; R500 non-refundable registration fee")
     for label, value in fields:
         if value is True:
             value = "Yes"

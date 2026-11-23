@@ -195,9 +195,11 @@ h1, h2, p { margin-top: 0; }
 .portfolio-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 20px; }
 .portfolio-grid figure { min-width: 0; margin: 0; }
 .portfolio-grid img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: center top; background: #e8dfd3; }
+.production-gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 900px; }
 .models-gallery figure:last-child img { object-fit: contain; }
 .portfolio-grid figcaption { padding: 10px 0; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
 .founder-portfolio-grid img { object-fit: cover; }
+.founder-portfolio-grid .clicks-campaign-image { object-fit: contain; object-position: center; }
 .portfolio-cta { margin-top: 60px; padding: 32px; background: #e9dfd1; }
 .portfolio-cta p { font: 400 24px/1.3 var(--serif); }
 @media (max-width: 760px) {

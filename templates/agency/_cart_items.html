@@ -4,9 +4,9 @@
       {% if item.training == "academy" %}
         <strong>Local Faces academy opportunity</strong><br>Proposed city: {{ item.city }}<br>R5,000 total: R1,666.67 payable now; R1,666.67 in month two and R1,666.66 in month three, arranged separately.
       {% elif item.training == "course" %}
-        <strong>6-week group course registration</strong><br>2027 · {{ item.city }}{% if item.application_number %}<br>Application: {{ item.application_number }}{% endif %}<br>R500 non-refundable registration payable now.         The remaining R{{ item.balance_due|floatformat:2 }} course fee is arranged separately with Local Faces.
+        <strong>6-week group course registration</strong><br>2027 · {{ item.city }}{% if item.application_number %}<br>Application: {{ item.application_number }}{% endif %}<br>R500 non-refundable registration payable now; includes a tailor-made manual and T-shirt and covers administration. The remaining R{{ item.balance_due|floatformat:2 }} course fee is arranged separately with Local Faces.
               {% else %}
-        <strong>One-on-one training</strong><br>2027 · {{ item.city }}{% if item.application_number %}<br>Application: {{ item.application_number }}{% endif %}<br>{{ item.hours }} hour{{ item.hours|pluralize }} at R1,500 per hour
+        <strong>One-on-one training</strong><br>2027 · {{ item.city }}{% if item.application_number %}<br>Application: {{ item.application_number }}{% endif %}<br>Minimum {{ item.sessions }} sessions, {{ item.session_hours }} hours per session at R2,500 per session.<br>50% deposit: R{{ item.deposit|floatformat:2 }} plus R500 non-refundable registration fee for the tailor-made manual, T-shirt and administration.
       {% endif %}
     </div>
     {% if item.whatsapp_url %}<p><a class="button button-champagne" href="{{ item.whatsapp_url }}" target="_blank" rel="noopener">Send application on WhatsApp</a></p>{% endif %}

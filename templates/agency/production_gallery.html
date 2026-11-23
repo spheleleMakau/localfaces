@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Production — Local Faces{% endblock %}
+{% block content %}
+<section class="portfolio-page" aria-labelledby="production-title">
+  <div class="portfolio-intro">
+    <p class="eyebrow">Local Faces Entertainment</p>
+    <h1 id="production-title">Production</h1>
+    <p>Behind the scenes and in-studio production with Local Faces.</p>
+  </div>
+  <div class="portfolio-grid production-gallery-grid">
+    <figure><img src="{% static 'agency/img/photography.jpg' %}" alt="Model and photographer working together in a white studio" loading="lazy"><figcaption>Studio production</figcaption></figure>
+    <figure><img src="{% static 'agency/img/pod.jpg' %}" alt="Local Faces podcast recording studio with a microphone" loading="lazy"><figcaption>Podcast studio</figcaption></figure>
+  </div>
+  <div class="portfolio-cta"><a class="button button-champagne" href="{% url 'home' %}">Back to home <span aria-hidden="true">→</span></a></div>
+</section>
+{% endblock %}
